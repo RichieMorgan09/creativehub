@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CreativeHub - Custom Designs, T-Shirts, Picture Frames, and Professional Photography">
+    <title>CreativeHub - Your Creative Business</title>
+    
+    <!-- React & Dependencies -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState } = React;
+        
+        // Lucide Icons as inline SVG components
+        const ShoppingCart = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+        );
+        
+        const Edit = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+        );
+        
+        const Trash2 = ({ size = 24, className = '' }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+        );
+        
+        const Plus = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+        );
+        
+        const LogOut = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+        );
+        
+        const Menu = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+        );
+        
+        const X = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        );
+
+        const DesignPortfolio = () => {
+          const [isAdmin, setIsAdmin] = useState(false);
+          const [adminPassword, setAdminPassword] = useState('');
+          const [showAdminLogin, setShowAdminLogin] = useState(false);
+          const [products, setProducts] = useState([
+            {
+              id: 1,
+              title: 'Modern Flyer Design',
+              category: 'flyer',
+              price: 29.99,
+              sizes: ['A4', 'A5', 'Letter'],
+              image: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="500"%3E%3Crect width="400" height="500" fill="%23667eea"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="white"%3EFlyer Design%3C/text%3E%3C/svg%3E',
+              description: 'Eye-catching modern flyer design perfect for events and promotions.'
+            },
+            {
+              id: 2,
+              title: 'Corporate Poster',
+              category: 'poster',
+              price: 49.99,
+              sizes: ['18x24', '24x36', 'A1'],
+              image: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="500"%3E%3Crect width="400" height="500" fill="%23764ba2"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="white"%3EPoster Design%3C/text%3E%3C/svg%3E',
+              description: 'Professional poster design for corporate events and presentations.'
+            },
+            {
+              id: 3,
+              title: 'Custom Graphic T-Shirt',
+              category: 'tshirt',
+              price: 34.99,
+              sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+              image: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="500"%3E%3Crect width="400" height="500" fill="%23ff6b6b"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="white"%3ET-Shirt Design%3C/text%3E%3C/svg%3E',
+              description: 'High-quality custom t-shirt with unique graphic design.'
+            },
+            {
+              id: 4,
+              title: 'Wooden Picture Frame',
+              category: 'frame',
+              price: 59.99,
+              sizes: ['8x10', '11x14', '16x20', '18x24'],
+              image: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="500"%3E%3Crect width="400" height="500" fill="%234ecdc4"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="white"%3EPicture Frame%3C/text%3E%3C/svg%3E',
+              description: 'Handcrafted wooden picture frame, perfect for your memories.'
+            },
+            {
+              id: 5,
+              title: 'Professional Portrait Session',
+              category: 'photoshoot',
+              price: 199.99,
+              sizes: ['1 Hour', '2 Hours', 'Half Day'],
+              image: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="500"%3E%3Crect width="400" height="500" fill="%2395e1d3"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="white"%3EPhoto Shoot%3C/text%3E%3C/svg%3E',
+              description: 'Professional portrait photography session with edited photos included.'
+            }
+          ]);
+
+          const [editingProduct, setEditingProduct] = useState(null);
+          const [showAddForm, setShowAddForm] = useState(false);
+          const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+          const [productToDelete, setProductToDelete] = useState(null);
+
+          const [formData, setFormData] = useState({
+            title: '',
+            category: 'flyer',
+            price: '',
+            sizes: '',
+            image: '',
+            description: ''
+          });
+
+          const [selectedCategory, setSelectedCategory] = useState('all');
+
+          const whatsappNumber = '233534657415';
+
+          const categories = [
+            { id: 'all', name: 'All Products', color: 'from-gray-600 to-gray-700' },
+            { id: 'flyer', name: 'Flyers', color: 'from-purple-600 to-purple-700' },
+            { id: 'poster', name: 'Posters', color: 'from-pink-600 to-pink-700' },
+            { id: 'tshirt', name: 'T-Shirts', color: 'from-red-600 to-red-700' },
+            { id: 'frame', name: 'Picture Frames', color: 'from-teal-600 to-teal-700' },
+            { id: 'photoshoot', name: 'Photo Shoots', color: 'from-green-600 to-green-700' }
+          ];
+
+          const filteredProducts = selectedCategory === 'all' 
+            ? products 
+            : products.filter(p => p.category === selectedCategory);
+
+          const handleWhatsAppOrder = (product) => {
+            const message = `Hi! I'm interested in ordering:
+            
+*${product.title}*
+Category: ${product.category}
+Price: GH₵ ${product.price}
+Available Options: ${product.sizes.join(', ')}
+
+Please let me know how to proceed with the order.`;
+            
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+            window.open(whatsappUrl, '_blank');
+          };
+
+          const handleAdminLogin = () => {
+            if (adminPassword === 'admin123') {
+              setIsAdmin(true);
+              setShowAdminLogin(false);
+              setAdminPassword('');
+            } else {
+              alert('Incorrect password');
+            }
+          };
+
+          const handleLogout = () => {
+            setIsAdmin(false);
+            setEditingProduct(null);
+            setShowAddForm(false);
+          };
+
+          const handleInputChange = (e) => {
+            const { name, value } = e.target;
+            const cleanedValue = name === 'image' ? value.trim().replace(/\s+/g, '') : value;
+            setFormData(prev => ({ ...prev, [name]: cleanedValue }));
+          };
+
+          const handleAddProduct = () => {
+            if (!formData.title || !formData.price || !formData.sizes || !formData.description) {
+              alert('Please fill in all required fields');
+              return;
+            }
+            const newProduct = {
+              id: Date.now(),
+              title: formData.title,
+              category: formData.category,
+              price: parseFloat(formData.price),
+              sizes: formData.sizes.split(',').map(s => s.trim()),
+              image: formData.image || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="500"%3E%3Crect width="400" height="500" fill="%23cccccc"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="24" fill="white"%3ENew Design%3C/text%3E%3C/svg%3E',
+              description: formData.description
+            };
+            setProducts([...products, newProduct]);
+            setFormData({ title: '', category: 'flyer', price: '', sizes: '', image: '', description: '' });
+            setShowAddForm(false);
+          };
+
+          const handleEditProduct = (product) => {
+            setEditingProduct(product);
+            setFormData({
+              title: product.title,
+              category: product.category,
+              price: product.price.toString(),
+              sizes: product.sizes.join(', '),
+              image: product.image,
+              description: product.description
+            });
+          };
+
+          const handleUpdateProduct = () => {
+            if (!formData.title || !formData.price || !formData.sizes || !formData.description) {
+              alert('Please fill in all required fields');
+              return;
+            }
+            setProducts(products.map(p => 
+              p.id === editingProduct.id 
+                ? {
+                    ...p,
+                    title: formData.title,
+                    category: formData.category,
+                    price: parseFloat(formData.price),
+                    sizes: formData.sizes.split(',').map(s => s.trim()),
+                    image: formData.image,
+                    description: formData.description
+                  }
+                : p
+            ));
+            setEditingProduct(null);
+            setFormData({ title: '', category: 'flyer', price: '', sizes: '', image: '', description: '' });
+          };
+
+          const openDeleteConfirmation = (product) => {
+            setProductToDelete(product);
+          };
+
+          const confirmDelete = () => {
+            if (productToDelete) {
+              setProducts(products.filter(p => p.id !== productToDelete.id));
+              setProductToDelete(null);
+            }
+          };
+
+          const cancelDelete = () => {
+            setProductToDelete(null);
+          };
+
+          const ProductForm = ({ onSubmit, buttonText }) => (
+            <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
+              <h3 className="text-2xl font-bold mb-4 text-gray-800">
+                {editingProduct ? 'Edit Product' : 'Add New Product'}
+              </h3>
+              
+              <div className="mb-4">
+                <label className="block text-gray-700 font-semibold mb-2">Title</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-700 font-semibold mb-2">Category</label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                >
+                  <option value="flyer">Flyer</option>
+                  <option value="poster">Poster</option>
+                  <option value="tshirt">T-Shirt</option>
+                  <option value="frame">Picture Frame</option>
+                  <option value="photoshoot">Photo Shoot</option>
+                </select>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-700 font-semibold mb-2">Price (GH₵)</label>
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleInputChange}
+                  step="0.01"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-700 font-semibold mb-2">Sizes/Options (comma separated)</label>
+                <input
+                  type="text"
+                  name="sizes"
+                  value={formData.sizes}
+                  onChange={handleInputChange}
+                  placeholder="For T-shirts: S, M, L, XL | For frames: 8x10, 11x14 | For shoots: 1 Hour, 2 Hours"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-700 font-semibold mb-2">Image URL</label>
+                <input
+                  type="text"
+                  name="image"
+                  value={formData.image}
+                  onChange={handleInputChange}
+                  placeholder="https://i.imgur.com/example.jpg"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  💡 Upload to Imgur and paste the direct link (https://i.imgur.com/xxxxx.jpg)
+                </p>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-700 font-semibold mb-2">Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows="3"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={onSubmit}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition"
+                >
+                  {buttonText}
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setShowAddForm(false);
+                    setFormData({ title: '', category: 'flyer', price: '', sizes: '', image: '', description: '' });
+                  }}
+                  className="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-400 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          );
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+              {productToDelete && (
+                <div 
+                  className="fixed inset-0 flex items-center justify-center p-4"
+                  style={{ 
+                    zIndex: 99999, 
+                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0
+                  }}
+                >
+                  <div 
+                    className="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl"
+                    style={{ position: 'relative', zIndex: 100000 }}
+                  >
+                    <div className="text-center mb-6">
+                      <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                        <Trash2 className="text-red-600" size={32} />
+                      </div>
+                      <h2 className="text-2xl font-bold text-gray-800 mb-2">Delete Product?</h2>
+                      <p className="text-gray-600">
+                        Are you sure you want to delete <strong>"{productToDelete.title}"</strong>?
+                      </p>
+                      <p className="text-sm text-gray-500 mt-2">
+                        This action cannot be undone and will remove the product from both admin and user views.
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={confirmDelete}
+                        className="flex-1 bg-red-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-600 transition"
+                      >
+                        Yes, Delete
+                      </button>
+                      <button
+                        onClick={cancelDelete}
+                        className="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-400 transition"
+                      >
+                        No, Keep It
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {showAdminLogin && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                  <div className="bg-white rounded-lg p-8 max-w-md w-full">
+                    <h2 className="text-2xl font-bold mb-4 text-gray-800">Admin Login</h2>
+                    <input
+                      type="password"
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleAdminLogin()}
+                      placeholder="Enter admin password"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:border-purple-500"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleAdminLogin}
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition"
+                      >
+                        Login
+                      </button>
+                      <button
+                        onClick={() => setShowAdminLogin(false)}
+                        className="flex-1 bg-gray-300 text-gray-700 px-6 py-2 rounded-lg font-semibold hover:bg-gray-400 transition"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <header className="bg-white shadow-md sticky top-0 z-40">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        CreativeHub
+                      </h1>
+                      <p className="text-gray-600 text-sm">Designs • T-Shirts • Frames • Photography</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                      {!isAdmin && (
+                        <button
+                          onClick={() => setShowAdminLogin(true)}
+                          className="hidden md:block text-sm text-gray-600 hover:text-purple-600 transition"
+                        >
+                          Admin
+                        </button>
+                      )}
+                      
+                      {isAdmin && (
+                        <div className="hidden md:flex items-center gap-2">
+                          <span className="text-sm text-gray-600">Admin Mode</span>
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                          >
+                            <LogOut size={16} />
+                            Logout
+                          </button>
+                        </div>
+                      )}
+
+                      <button
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className="md:hidden text-gray-600"
+                      >
+                        {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {mobileMenuOpen && (
+                    <div className="md:hidden mt-4 pb-4 border-t border-gray-200 pt-4">
+                      {!isAdmin ? (
+                        <button
+                          onClick={() => {
+                            setShowAdminLogin(true);
+                            setMobileMenuOpen(false);
+                          }}
+                          className="block w-full text-left text-gray-600 hover:text-purple-600 transition"
+                        >
+                          Admin Login
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            handleLogout();
+                            setMobileMenuOpen(false);
+                          }}
+                          className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition w-full justify-center"
+                        >
+                          <LogOut size={16} />
+                          Logout
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </header>
+
+              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="text-center mb-12">
+                  <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+                    Creative Solutions for Every Need
+                  </h2>
+                  <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                    From custom designs to professional photography - we bring your vision to life
+                  </p>
+                </div>
+
+                <div className="mb-8 overflow-x-auto">
+                  <div className="flex gap-3 justify-center flex-wrap">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setSelectedCategory(cat.id)}
+                        className={`px-6 py-3 rounded-lg font-semibold transition transform hover:scale-105 whitespace-nowrap ${
+                          selectedCategory === cat.id
+                            ? `bg-gradient-to-r ${cat.color} text-white shadow-lg`
+                            : 'bg-white text-gray-700 hover:bg-gray-100 shadow'
+                        }`}
+                      >
+                        {cat.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {isAdmin && (
+                  <div className="mb-8">
+                    {!showAddForm && !editingProduct && (
+                      <button
+                        onClick={() => setShowAddForm(true)}
+                        className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition shadow-lg"
+                      >
+                        <Plus size={20} />
+                        Add New Product
+                      </button>
+                    )}
+
+                    {showAddForm && (
+                      <ProductForm onSubmit={handleAddProduct} buttonText="Add Product" />
+                    )}
+
+                    {editingProduct && (
+                      <ProductForm onSubmit={handleUpdateProduct} buttonText="Update Product" />
+                    )}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {filteredProducts.map((product) => {
+                    const categoryColor = categories.find(c => c.id === product.category)?.color || 'from-gray-600 to-gray-700';
+                    return (
+                      <div key={product.id} className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition duration-300">
+                        <div className="relative">
+                          <img
+                            src={product.image}
+                            alt={product.title}
+                            className="w-full h-64 object-cover bg-gray-200"
+                            crossOrigin="anonymous"
+                            loading="lazy"
+                          />
+                          <div className={`absolute top-4 right-4 bg-gradient-to-r ${categoryColor} text-white px-3 py-1 rounded-full text-sm font-semibold capitalize`}>
+                            {product.category}
+                          </div>
+                        </div>
+                        
+                        <div className="p-6">
+                          <h3 className="text-xl font-bold text-gray-800 mb-2">{product.title}</h3>
+                          <p className="text-gray-600 text-sm mb-4">{product.description}</p>
+                          
+                          <div className="mb-4">
+                            <p className="text-sm text-gray-500 mb-1">Available Options:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {product.sizes.map((size, idx) => (
+                                <span key={idx} className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">
+                                  {size}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <span className="text-2xl font-bold text-purple-600">GH₵ {product.price}</span>
+                            
+                            {isAdmin ? (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleEditProduct(product)}
+                                  className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition"
+                                >
+                                  <Edit size={18} />
+                                </button>
+                                <button
+                                  onClick={() => openDeleteConfirmation(product)}
+                                  className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition"
+                                >
+                                  <Trash2 size={18} />
+                                </button>
+                              </div>
+                            ) : (
+                              <button 
+                                onClick={() => handleWhatsAppOrder(product)}
+                                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition flex items-center gap-2"
+                              >
+                                <ShoppingCart size={18} />
+                                Order
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {filteredProducts.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500 text-xl">No products in this category yet.</p>
+                    {isAdmin && (
+                      <button
+                        onClick={() => setShowAddForm(true)}
+                        className="mt-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition"
+                      >
+                        Add Your First Product
+                      </button>
+                    )}
+                  </div>
+                )}
+              </main>
+
+              <footer className="bg-gray-800 text-white py-8 mt-12">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                  <p>&copy; 2025 CreativeHub. All rights reserved.</p>
+                  <p className="text-sm text-gray-400 mt-2">Custom Designs • T-Shirts • Picture Frames • Professional Photography</p>
+                </div>
+              </footer>
+            </div>
+          );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<DesignPortfolio />);
+    </script>
+</body>
+</html>
