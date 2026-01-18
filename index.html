@@ -184,8 +184,10 @@
                     photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'
                 };
 
-                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                // Controlled bypass for automated testing
+                if (new URLSearchParams(window.location.search).get('demo') === 'true') {
                     setUser(demoUser);
+                    showToast("Logged in as Demo User");
                     return;
                 }
 
@@ -194,12 +196,17 @@
                     provider = new firebase.auth.OAuthProvider('apple.com');
                 }
                 auth.signInWithPopup(provider).catch(err => {
-                    console.warn("Auth failed, using demo user", err);
-                    setUser(demoUser);
+                    console.error("Auth failed:", err);
+                    alert("Authentication failed: " + err.message);
                 });
             };
 
-            const logout = () => auth.signOut();
+            const logout = () => {
+                auth.signOut().finally(() => {
+                    setUser(null);
+                    showToast("Logged out successfully");
+                });
+            };
 
             // STORE LOGIC
             const syncWithDB = async (newList) => {
