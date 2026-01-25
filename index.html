@@ -107,8 +107,10 @@
             const [editingProduct, setEditingProduct] = useState(null);
             const [formData, setFormData] = useState({ title: '', category: 'flyer', price: '', sizes: '', image: '', description: '', stock: '' });
             const [adminTab, setAdminTab] = useState('inventory');
-            const [orders, setOrders] = useState(() => JSON.parse(localStorage.getItem('ch_orders') || '[]'));
+            const [orders, setOrders] = useState([]);
+            const [messages, setMessages] = useState([]);
             const [orderSearch, setOrderSearch] = useState('');
+            const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
 
             const WHATSAPP_NUMBER = "233534657415";
             const BIN_ID = '6944b3a5d0ea881f403340b4';
@@ -143,6 +145,8 @@
                     .then(data => {
                         const enriched = (data.record.products || []).map(p => ({...p, stock: p.stock ?? 10}));
                         setProducts(enriched);
+                        setOrders(data.record.orders || []);
+                        setMessages(data.record.messages || []);
                         setLoading(false);
                     });
             }, []);
@@ -154,10 +158,6 @@
             useEffect(() => {
                 localStorage.setItem('ch_wishlist', JSON.stringify(wishlist));
             }, [wishlist]);
-
-            useEffect(() => {
-                localStorage.setItem('ch_orders', JSON.stringify(orders));
-            }, [orders]);
 
             useEffect(() => {
                 localStorage.setItem('ch_theme', darkMode ? 'dark' : 'light');
@@ -229,15 +229,22 @@
             };
 
             // STORE LOGIC
-            const syncWithDB = async (newList) => {
+            const syncWithDB = async (newProducts, newOrders, newMessages) => {
                 setIsSyncing(true);
+                const payload = {
+                    products: newProducts || products,
+                    orders: newOrders || orders,
+                    messages: newMessages || messages
+                };
                 try {
                     await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json', 'X-Access-Key': API_KEY },
-                        body: JSON.stringify({ products: newList })
+                        body: JSON.stringify(payload)
                     });
-                    setProducts(newList);
+                    if (newProducts) setProducts(newProducts);
+                    if (newOrders) setOrders(newOrders);
+                    if (newMessages) setMessages(newMessages);
                     showToast("Database Updated Successfully");
                 } catch (e) { alert("Sync failed."); }
                 setIsSyncing(false);
@@ -258,7 +265,7 @@
                     sizes: formData.sizes.split(',').map(s => s.trim())
                 };
                 const updatedList = editingProduct ? products.map(p => p.id === editingProduct.id ? newProduct : p) : [...products, newProduct];
-                syncWithDB(updatedList);
+                syncWithDB(updatedList, null, null);
                 setFormData({ title: '', category: 'flyer', price: '', sizes: '', image: '', description: '', stock: '' });
                 setEditingProduct(null);
             };
@@ -323,12 +330,32 @@
                     total: cartTotal,
                     timestamp: new Date().toISOString()
                 };
-                setOrders(prev => [...prev, newOrder]);
+                const updatedOrders = [...orders, newOrder];
+                syncWithDB(null, updatedOrders, null);
+                setCart([]);
 
                 const message = `*NEW ORDER - CreativeHub*\n\n` +
                     cart.map((item, i) => `${i+1}. ${item.title} (x${item.qty}) - GH₵${(item.price * item.qty).toFixed(2)}`).join('\n') +
                     `\n\n*Total Amount: GH₵${cartTotal.toFixed(2)}*\n\nPlease confirm my order!`;
                 window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+            };
+
+            const handleContactSubmit = (e) => {
+                e.preventDefault();
+                const newMessage = {
+                    id: Date.now(),
+                    ...contactForm,
+                    timestamp: new Date().toISOString()
+                };
+                const updatedMessages = [...messages, newMessage];
+                syncWithDB(null, null, updatedMessages);
+
+                // Functional mailto as requested
+                const mailtoLink = `mailto:andybright484@gmail.com?subject=New Message from ${contactForm.name}&body=${encodeURIComponent(contactForm.message)} (From: ${contactForm.email})`;
+                window.location.href = mailtoLink;
+
+                setContactForm({ name: '', email: '', message: '' });
+                showToast("Message Sent to Andy Bright!");
             };
 
             if (authLoading || loading) return <div className="h-screen flex items-center justify-center bg-[#0f172a] text-white">Loading CreativeHub...</div>;
@@ -400,6 +427,7 @@
                              <div className="flex gap-6 border-b border-white/10 mb-8">
                                 <button onClick={() => setAdminTab('inventory')} className={`pb-4 px-2 font-bold transition-all ${adminTab === 'inventory' ? 'text-purple-500 border-b-2 border-purple-500' : 'text-gray-500'}`}>Inventory</button>
                                 <button onClick={() => setAdminTab('orders')} className={`pb-4 px-2 font-bold transition-all ${adminTab === 'orders' ? 'text-purple-500 border-b-2 border-purple-500' : 'text-gray-500'}`}>Orders ({orders.length})</button>
+                                <button onClick={() => setAdminTab('messages')} className={`pb-4 px-2 font-bold transition-all ${adminTab === 'messages' ? 'text-purple-500 border-b-2 border-purple-500' : 'text-gray-500'}`}>Messages ({messages.length})</button>
                              </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
@@ -424,7 +452,30 @@
                                 </div>
                             </div>
 
-                            {adminTab === 'orders' ? (
+                            {adminTab === 'messages' ? (
+                                <div className="admin-glass p-8 rounded-3xl">
+                                    <h3 className="font-bold text-lg mb-8">Customer Messages</h3>
+                                    {messages.length === 0 ? <p className="text-gray-500 text-center py-10">No messages received.</p> : (
+                                        <div className="space-y-4">
+                                            {messages.map((msg) => (
+                                                <div key={msg.id} className="bg-white/5 border border-white/10 p-6 rounded-2xl flex flex-col md:flex-row justify-between items-start gap-4 group">
+                                                    <div className="flex-1">
+                                                        <div className="font-bold text-purple-400">{msg.name} <span className="text-gray-500 font-normal ml-2">({msg.email})</span></div>
+                                                        <p className="mt-2 text-gray-300 italic">"{msg.message}"</p>
+                                                        <div className="text-[10px] text-gray-500 mt-4 uppercase">{new Date(msg.timestamp).toLocaleString()}</div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => syncWithDB(null, null, messages.filter(m => m.id !== msg.id))}
+                                                        className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition"
+                                                    >
+                                                        <Icon name="trash" size={18} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : adminTab === 'orders' ? (
                                 <div className="admin-glass p-8 rounded-3xl">
                                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                                         <h3 className="font-bold text-lg">Recent Orders</h3>
@@ -468,7 +519,7 @@
                                                             <div className="text-[10px] text-gray-500 mt-1 uppercase tracking-tighter">{new Date(order.timestamp).toLocaleString()}</div>
                                                         </div>
                                                         <button
-                                                            onClick={() => setOrders(prev => prev.filter(o => o.id !== order.id))}
+                                                            onClick={() => syncWithDB(null, orders.filter(o => o.id !== order.id), null)}
                                                             className="p-3 bg-red-500/10 text-red-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
                                                             title="Delete Order Record"
                                                         >
@@ -496,9 +547,12 @@
                                                 <div>
                                                     <label className="text-xs text-gray-400 block mb-1 ml-1">Category</label>
                                                     <select className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.category} onChange={e=>setFormData({...formData, category: e.target.value})}>
-                                                        <option value="flyer">Flyer</option><option value="poster">Poster</option>
-                                                        <option value="tshirt">T-Shirt</option><option value="frame">Frame</option>
-                                                        <option value="photoshoot">Photoshoot</option>
+                                                        <option value="flyer">Flyer</option>
+                                                        <option value="poster">Poster</option>
+                                                        <option value="tshirt">T-Shirt</option>
+                                                        <option value="frame">Frame</option>
+                                                        <option value="photoshop">Photoshop</option>
+                                                        <option value="handbags">Handbags</option>
                                                     </select>
                                                 </div>
                                                 <div>
@@ -598,7 +652,7 @@
                                              className="w-8 h-8 rounded-full border border-purple-500 shrink-0" />
                                         <div className="flex flex-col">
                                             <span className="text-[10px] md:text-xs font-bold truncate max-w-[70px] sm:max-w-[120px]">
-                                                {user.displayName}
+                                                {user.email === 'andybright484@gmail.com' ? 'Andy Bright (Admin)' : user.displayName}
                                             </span>
                                             <button onClick={logout} className="text-[9px] md:text-[10px] text-red-500 font-bold text-left underline">
                                                 Logout
@@ -738,7 +792,7 @@
                     <main className="max-w-7xl mx-auto px-4 py-8">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                             <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 custom-scrollbar scroll-smooth">
-                                {['all', 'flyer', 'poster', 'tshirt', 'frame', 'photoshoot'].map(cat => (
+                                {['all', 'flyer', 'poster', 'tshirt', 'frame', 'photoshop', 'handbags'].map(cat => (
                                     <button key={cat} onClick={() => setCategory(cat)} className={`px-6 py-2 rounded-full capitalize whitespace-nowrap transition-all ${category === cat ? 'bg-purple-600 text-white shadow-lg' : (darkMode ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-600 border')}`}>
                                         {cat}
                                     </button>
@@ -844,10 +898,13 @@
                                 </div>
                             </div>
                             <div className={`p-8 rounded-[2.5rem] ${darkMode ? 'bg-gray-800' : 'bg-white shadow-xl'}`}>
-                                <form className="space-y-4" onSubmit={e => { e.preventDefault(); showToast("Message received!"); }}>
-                                    <input type="text" placeholder="Your Name" className={`w-full p-4 rounded-2xl border outline-none focus:ring-2 focus:ring-purple-500 ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-transparent'}`} />
-                                    <input type="email" placeholder="Your Email" className={`w-full p-4 rounded-2xl border outline-none focus:ring-2 focus:ring-purple-500 ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-transparent'}`} />
-                                    <textarea placeholder="Tell us about your project..." rows="4" className={`w-full p-4 rounded-2xl border outline-none focus:ring-2 focus:ring-purple-500 ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-transparent'}`} />
+                                <form className="space-y-4" onSubmit={handleContactSubmit}>
+                                    <input type="text" required placeholder="Your Name" className={`w-full p-4 rounded-2xl border outline-none focus:ring-2 focus:ring-purple-500 ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-transparent'}`}
+                                        value={contactForm.name} onChange={e => setContactForm({...contactForm, name: e.target.value})} />
+                                    <input type="email" required placeholder="Your Email" className={`w-full p-4 rounded-2xl border outline-none focus:ring-2 focus:ring-purple-500 ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-transparent'}`}
+                                        value={contactForm.email} onChange={e => setContactForm({...contactForm, email: e.target.value})} />
+                                    <textarea required placeholder="Tell us about your project..." rows="4" className={`w-full p-4 rounded-2xl border outline-none focus:ring-2 focus:ring-purple-500 ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-transparent'}`}
+                                        value={contactForm.message} onChange={e => setContactForm({...contactForm, message: e.target.value})} />
                                     <button type="submit" className="w-full bg-purple-600 text-white py-4 rounded-2xl font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-500/30">Send Message</button>
                                 </form>
                             </div>
@@ -860,7 +917,6 @@
                             <p className="text-gray-500 text-sm">Elevating your brand with premium designs.</p>
                             <div className="mt-4 flex justify-center gap-6 text-xs font-bold text-gray-400">
                                 <a href="#" className="hover:text-purple-500">Home</a>
-                                <a href="#/admin" className="hover:text-purple-500">Admin</a>
                                 <a href="#" className="hover:text-purple-500">Privacy</a>
                             </div>
                             <p className="mt-8 text-[10px] text-gray-500 uppercase tracking-widest">&copy; 2026 CreativeHub All Rights Reserved.</p>
