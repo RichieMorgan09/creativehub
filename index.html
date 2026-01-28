@@ -93,6 +93,8 @@
             const [wishlist, setWishlist] = useState(() => JSON.parse(localStorage.getItem('ch_wishlist') || '[]'));
             const [isCartOpen, setIsCartOpen] = useState(false);
             const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+            const [compareList, setCompareList] = useState(() => JSON.parse(localStorage.getItem('ch_compare') || '[]'));
+            const [showCompare, setShowCompare] = useState(false);
             const [selectedProduct, setSelectedProduct] = useState(null);
             const [searchQuery, setSearchQuery] = useState('');
             const [category, setCategory] = useState('all');
@@ -105,7 +107,7 @@
             const [adminPassInput, setAdminPassInput] = useState('');
             const [isSyncing, setIsSyncing] = useState(false);
             const [editingProduct, setEditingProduct] = useState(null);
-            const [formData, setFormData] = useState({ title: '', category: 'flyer', price: '', sizes: '', image: '', description: '', stock: '' });
+            const [formData, setFormData] = useState({ title: '', category: 'flyer', price: '', sizes: '', image: '', description: '', stock: '', rating: '5' });
             const [adminTab, setAdminTab] = useState('inventory');
             const [orders, setOrders] = useState([]);
             const [messages, setMessages] = useState([]);
@@ -143,7 +145,7 @@
                 fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Access-Key': API_KEY } })
                     .then(res => res.json())
                     .then(data => {
-                        const enriched = (data.record.products || []).map(p => ({...p, stock: p.stock ?? 10}));
+                        const enriched = (data.record.products || []).map(p => ({...p, stock: p.stock ?? 10, rating: p.rating ?? 5}));
                         setProducts(enriched);
                         setOrders(data.record.orders || []);
                         setMessages(data.record.messages || []);
@@ -158,6 +160,10 @@
             useEffect(() => {
                 localStorage.setItem('ch_wishlist', JSON.stringify(wishlist));
             }, [wishlist]);
+
+            useEffect(() => {
+                localStorage.setItem('ch_compare', JSON.stringify(compareList));
+            }, [compareList]);
 
             useEffect(() => {
                 localStorage.setItem('ch_theme', darkMode ? 'dark' : 'light');
@@ -262,17 +268,18 @@
                     id: editingProduct ? editingProduct.id : Date.now(),
                     price: parseFloat(formData.price),
                     stock: parseInt(formData.stock || 10),
+                    rating: parseInt(formData.rating || 5),
                     sizes: formData.sizes.split(',').map(s => s.trim())
                 };
                 const updatedList = editingProduct ? products.map(p => p.id === editingProduct.id ? newProduct : p) : [...products, newProduct];
                 syncWithDB(updatedList, null, null);
-                setFormData({ title: '', category: 'flyer', price: '', sizes: '', image: '', description: '', stock: '' });
+                setFormData({ title: '', category: 'flyer', price: '', sizes: '', image: '', description: '', stock: '', rating: '5' });
                 setEditingProduct(null);
             };
 
             const startEdit = (p) => {
                 setEditingProduct(p);
-                setFormData({ ...p, price: p.price.toString(), stock: (p.stock || 10).toString(), sizes: p.sizes.join(', ') });
+                setFormData({ ...p, price: p.price.toString(), stock: (p.stock || 10).toString(), rating: (p.rating || 5).toString(), sizes: p.sizes.join(', ') });
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
@@ -301,6 +308,21 @@
                 } else {
                     setWishlist(prev => [...prev, product]);
                     showToast("Added to wishlist");
+                }
+            };
+
+            const toggleCompare = (product) => {
+                const exists = compareList.find(item => item.id === product.id);
+                if (exists) {
+                    setCompareList(prev => prev.filter(item => item.id !== product.id));
+                    showToast("Removed from comparison");
+                } else {
+                    if (compareList.length >= 4) {
+                        showToast("You can compare up to 4 products");
+                        return;
+                    }
+                    setCompareList(prev => [...prev, product]);
+                    showToast("Added to comparison");
                 }
             };
 
@@ -572,9 +594,15 @@
                                                 <label className="text-xs text-gray-400 block mb-1 ml-1">Description</label>
                                                 <textarea required rows="3" className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.description} onChange={e=>setFormData({...formData, description: e.target.value})} />
                                             </div>
-                                            <div>
-                                                <label className="text-xs text-gray-400 block mb-1 ml-1">Stock Level</label>
-                                                <input type="number" required className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.stock} onChange={e=>setFormData({...formData, stock: e.target.value})} />
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-xs text-gray-400 block mb-1 ml-1">Stock Level</label>
+                                                    <input type="number" required className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.stock} onChange={e=>setFormData({...formData, stock: e.target.value})} />
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs text-gray-400 block mb-1 ml-1">Rating (1-5)</label>
+                                                    <input type="number" min="1" max="5" required className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.rating} onChange={e=>setFormData({...formData, rating: e.target.value})} />
+                                                </div>
                                             </div>
                                             <div className="flex gap-3 pt-4">
                                                 <button type="submit" className="flex-1 bg-purple-600 p-4 rounded-xl font-bold hover:bg-purple-700 transition">{editingProduct ? 'Update Product' : 'Upload to Store'}</button>
@@ -664,6 +692,14 @@
                                         <button onClick={() => setDarkMode(!darkMode)} className="p-2 hover:bg-gray-200 rounded-full dark:hover:bg-gray-800">
                                             <Icon name={darkMode ? 'sun' : 'moon'} />
                                         </button>
+                                        <button onClick={() => setShowCompare(true)} className="relative p-2 hover:bg-gray-200 rounded-full dark:hover:bg-gray-800">
+                                            <Icon name="layout" />
+                                            {compareList.length > 0 && (
+                                                <span className="absolute -top-1 -right-1 bg-blue-500 text-[10px] w-4 h-4 flex items-center justify-center rounded-full text-white">
+                                                    {compareList.length}
+                                                </span>
+                                            )}
+                                        </button>
                                         <button onClick={() => setIsWishlistOpen(true)} className="relative p-2 hover:bg-gray-200 rounded-full dark:hover:bg-gray-800">
                                             <Icon name="heart" />
                                             {wishlist.length > 0 && (
@@ -740,6 +776,74 @@
                                         {wishlist.length === 0 ? <div className="text-center py-20 opacity-50"><Icon name="heart" size={48} className="mx-auto mb-4" /><p>Your wishlist is empty</p></div> :
                                         <div className="space-y-6">{wishlist.map(item => (<div key={item.id} className="flex gap-4"><img src={item.image} className="w-20 h-20 object-cover rounded-lg bg-gray-100" /><div className="flex-1"><h4 className="font-semibold text-sm">{item.title}</h4><p className="text-purple-600 font-bold">GH₵{item.price}</p><div className="flex items-center gap-3 mt-2"><button onClick={() => addToCart(item)} className="bg-purple-600 text-white px-3 py-1 rounded-lg text-xs font-bold">Add to Cart</button><button onClick={() => toggleWishlist(item)} className="ml-auto text-red-500"><Icon name="trash" size={16}/></button></div></div></div>))}</div>}
                                     </div>
+                                </motion.div>
+                            </div>
+                        )}
+                    </AnimatePresence>
+
+                    <AnimatePresence>
+                        {showCompare && (
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                                <motion.div
+                                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                    className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCompare(false)}
+                                />
+                                <motion.div
+                                    initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+                                    className={`relative w-full max-w-5xl rounded-3xl ${darkMode ? 'bg-gray-900 border border-gray-800' : 'bg-white'} shadow-2xl p-8 overflow-x-auto`}
+                                >
+                                    <div className="flex justify-between items-center mb-8">
+                                        <h2 className="text-2xl font-black">Product Comparison</h2>
+                                        <button onClick={() => setShowCompare(false)} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"><Icon name="x" /></button>
+                                    </div>
+
+                                    {compareList.length === 0 ? (
+                                        <div className="text-center py-20 opacity-50">
+                                            <Icon name="layout" size={48} className="mx-auto mb-4" />
+                                            <p>No products to compare. Add some from the store!</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 min-w-[600px]">
+                                            {compareList.map(p => (
+                                                <div key={p.id} className="text-center relative group">
+                                                    <button
+                                                        onClick={() => setCompareList(compareList.filter(i => i.id !== p.id))}
+                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                                    >
+                                                        <Icon name="trash" size={14} />
+                                                    </button>
+                                                    <img src={p.image} className="w-full h-48 object-cover rounded-2xl mb-4 shadow-md" />
+                                                    <h3 className="font-bold text-lg mb-2 truncate">{p.title}</h3>
+                                                    <div className="space-y-4">
+                                                        <div className="py-2 border-b border-gray-100 dark:border-gray-800 flex flex-col">
+                                                            <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Price</span>
+                                                            <span className="text-purple-600 font-bold">GH₵{p.price}</span>
+                                                        </div>
+                                                        <div className="py-2 border-b border-gray-100 dark:border-gray-800 flex flex-col">
+                                                            <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Rating</span>
+                                                            <span className="text-yellow-500">{'⭐'.repeat(p.rating)}</span>
+                                                        </div>
+                                                        <div className="py-2 border-b border-gray-100 dark:border-gray-800 flex flex-col">
+                                                            <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Category</span>
+                                                            <span className="uppercase text-xs font-bold">{p.category}</span>
+                                                        </div>
+                                                        <div className="py-2 border-b border-gray-100 dark:border-gray-800 flex flex-col">
+                                                            <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Availability</span>
+                                                            <span className="text-xs font-bold">{p.stock > 0 ? 'In Stock' : 'Out of Stock'}</span>
+                                                        </div>
+                                                        <div className="pt-4">
+                                                            <button
+                                                                onClick={() => { addToCart(p); setShowCompare(false); }}
+                                                                className="w-full bg-gray-900 dark:bg-purple-600 text-white py-3 rounded-xl text-xs font-bold hover:scale-105 transition"
+                                                            >
+                                                                Add to Cart
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </motion.div>
                             </div>
                         )}
@@ -825,9 +929,14 @@
                                 >
                                     <div className="relative overflow-hidden aspect-[4/5]">
                                         <img src={product.image} alt={product.title} onClick={() => setSelectedProduct(product)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 cursor-pointer" />
-                                        <button onClick={() => toggleWishlist(product)} className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur rounded-full text-red-500 shadow-sm hover:scale-110 transition">
-                                            <Icon name={wishlist.find(item => item.id === product.id) ? 'heartFilled' : 'heart'} size={18} />
-                                        </button>
+                                        <div className="absolute top-3 right-3 flex flex-col gap-2">
+                                            <button onClick={() => toggleWishlist(product)} className="p-2 bg-white/90 backdrop-blur rounded-full text-red-500 shadow-sm hover:scale-110 transition">
+                                                <Icon name={wishlist.find(item => item.id === product.id) ? 'heartFilled' : 'heart'} size={18} />
+                                            </button>
+                                            <button onClick={() => toggleCompare(product)} className={`p-2 bg-white/90 backdrop-blur rounded-full shadow-sm hover:scale-110 transition ${compareList.find(item => item.id === product.id) ? 'text-blue-500' : 'text-gray-400'}`}>
+                                                <Icon name="layout" size={18} />
+                                            </button>
+                                        </div>
                                         <div className="absolute top-3 left-3">
                                             <span className="bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-bold uppercase text-gray-800">{product.category}</span>
                                         </div>
