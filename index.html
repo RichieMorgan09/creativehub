@@ -805,39 +805,17 @@
                                     ) : (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 min-w-[600px]">
                                             {compareList.map(p => (
-                                                <div key={p.id} className="text-center relative group">
-                                                    <button
-                                                        onClick={() => setCompareList(compareList.filter(i => i.id !== p.id))}
-                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                                    >
-                                                        <Icon name="trash" size={14} />
-                                                    </button>
-                                                    <img src={p.image} className="w-full h-48 object-cover rounded-2xl mb-4 shadow-md" />
-                                                    <h3 className="font-bold text-lg mb-2 truncate">{p.title}</h3>
+                                                <div key={p.id} className="text-center relative">
+                                                    <button onClick={() => setCompareList(compareList.filter(i => i.id !== p.id))} className="absolute top-0 right-0 text-red-500 hover:bg-red-50 rounded-full p-1"><Icon name="trash" size={14} /></button>
+                                                    <img src={p.image} className="w-full h-40 object-cover rounded-xl mb-4 shadow-lg" />
+                                                    <h3 className="font-bold text-lg mb-2 truncate dark:text-white">{p.title}</h3>
                                                     <div className="space-y-4">
-                                                        <div className="py-2 border-b border-gray-100 dark:border-gray-800 flex flex-col">
-                                                            <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Price</span>
-                                                            <span className="text-purple-600 font-bold">GH₵{p.price}</span>
-                                                        </div>
-                                                        <div className="py-2 border-b border-gray-100 dark:border-gray-800 flex flex-col">
-                                                            <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Rating</span>
-                                                            <span className="text-yellow-500">{'⭐'.repeat(p.rating)}</span>
-                                                        </div>
-                                                        <div className="py-2 border-b border-gray-100 dark:border-gray-800 flex flex-col">
-                                                            <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Category</span>
-                                                            <span className="uppercase text-xs font-bold">{p.category}</span>
-                                                        </div>
-                                                        <div className="py-2 border-b border-gray-100 dark:border-gray-800 flex flex-col">
-                                                            <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Availability</span>
-                                                            <span className="text-xs font-bold">{p.stock > 0 ? 'In Stock' : 'Out of Stock'}</span>
-                                                        </div>
-                                                        <div className="pt-4">
-                                                            <button
-                                                                onClick={() => { addToCart(p); setShowCompare(false); }}
-                                                                className="w-full bg-gray-900 dark:bg-purple-600 text-white py-3 rounded-xl text-xs font-bold hover:scale-105 transition"
-                                                            >
-                                                                Add to Cart
-                                                            </button>
+                                                        <div className="h-10 border-b dark:border-gray-800 flex items-center justify-center text-purple-600 font-bold">GH₵{p.price}</div>
+                                                        <div className="h-10 border-b dark:border-gray-800 flex items-center justify-center text-yellow-500">{'⭐'.repeat(p.rating)}</div>
+                                                        <div className="h-10 border-b dark:border-gray-800 flex items-center justify-center uppercase text-xs font-bold tracking-widest text-gray-900 dark:text-white">{p.category}</div>
+                                                        <div className="h-10 border-b dark:border-gray-800 flex items-center justify-center text-sm text-gray-900 dark:text-white">{p.stock > 0 ? 'In Stock' : 'Out of Stock'}</div>
+                                                        <div className="h-10 flex items-center justify-center pt-2">
+                                                            <button onClick={() => { addToCart(p); setShowCompare(false); }} className="bg-black text-white px-6 py-2 rounded-full text-xs font-bold hover:scale-105 transition">Add to Cart</button>
                                                         </div>
                                                     </div>
                                                 </div>
