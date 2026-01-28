@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CreativeHub - Professional E-commerce Platform with Advanced Features">
+    <meta name="description" content="CreativeHub - Professional E-commerce Platform">
     <title>CreativeHub | Advanced Store</title>
 
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -19,120 +18,41 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap');
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-
-        .cart-slide {
-            transition: transform 0.3s ease-in-out;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #8b5cf6;
-            border-radius: 10px;
-        }
-
-        .admin-glass {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .login-gradient {
-            background: radial-gradient(circle at top right, #4f46e5, transparent), radial-gradient(circle at bottom left, #7c3aed, transparent), #0f172a;
-        }
-
-        select option {
-            background-color: #1e293b;
-            color: white;
-        }
-
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .cart-slide { transition: transform 0.3s ease-in-out; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #8b5cf6; border-radius: 10px; }
+        .admin-glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .login-gradient { background: radial-gradient(circle at top right, #4f46e5, transparent), radial-gradient(circle at bottom left, #7c3aed, transparent), #0f172a; }
+        select option { background-color: #1e293b; color: white; }
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translate(-50%, 20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translate(-50%, 0);
-            }
+            from { opacity: 0; transform: translate(-50%, 20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
         }
-
-        .animate-fade-in-up {
-            animation: fadeInUp 0.3s ease-out forwards;
-        }
-
-        /* Advanced Features Styles */
-        .price-range-slider {
-            appearance: none;
-            width: 100%;
-            height: 4px;
-            border-radius: 2px;
-            background: #8b5cf6;
-            outline: none;
-        }
-
-        .price-range-slider::-webkit-slider-thumb {
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #8b5cf6;
-            cursor: pointer;
-            box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
-        }
-
-        .price-range-slider::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #8b5cf6;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
-        }
-
-        .rating-stars {
-            display: flex;
-            gap: 2px;
-        }
-
-        .star {
-            color: #fbbf24;
-            font-size: 14px;
-        }
-
-        .product-badge {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.7;
-            }
-        }
+        .animate-fade-in-up { animation: fadeInUp 0.3s ease-out forwards; }
     </style>
 </head>
-
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
-        const motion = window.Motion?.motion || (({ children }) => <div>{children}</div>);
+
+        // Safe initialization for Framer Motion with robust fallback
+        const motion = window.Motion?.motion || (() => {
+            const tags = ['div', 'span', 'section', 'p', 'h1', 'h2', 'h3', 'button', 'nav', 'ul', 'li', 'article', 'footer', 'header', 'main'];
+            const fallback = {};
+            tags.forEach(tag => {
+                fallback[tag] = React.forwardRef(({ children, ...props }, ref) => {
+                    const { whileHover, whileTap, initial, animate, transition, exit, drag, layout, ...cleanProps } = props;
+                    return React.createElement(tag, { ...cleanProps, ref }, children);
+                });
+            });
+            return fallback;
+        })();
         const AnimatePresence = window.Motion?.AnimatePresence || (({ children }) => children);
+
+        console.log("Motion available:", !!window.Motion);
 
         // --- FIREBASE CONFIGURATION ---
         const firebaseConfig = {
@@ -150,33 +70,35 @@
         }
         const auth = firebase.auth();
 
+        // --- DATABASE CONFIGURATION (JSONBin) ---
+        // Note: For production, use a secure backend. Master keys should not be exposed client-side.
+
         // --- ICONS ---
         const Icon = ({ name, size = 20, className = "" }) => {
             const icons = {
-                google: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>,
-                apple: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.68 7.28-.62 1.57-1.44 3.14-2.73 3.93zM12.03 7.25c-.02-2.23 1.76-4.07 3.9-4.25.26 2.5-2.01 4.5-3.9 4.25z" /></svg>,
-                cart: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" /></svg>,
-                trash: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" /></svg>,
-                plus: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>,
-                minus: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 12h14" /></svg>,
-                search: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>,
-                x: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12" /></svg>,
-                sun: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>,
-                moon: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>,
-                edit: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>,
-                layout: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" /></svg>,
-                heart: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>,
-                heartFilled: <svg fill="currentColor" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>,
-                star: <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>,
-                filter: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>,
-                trending: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 17" /><polyline points="23 6 23 12 17 12" /></svg>,
-                refresh: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></svg>,
-                share: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+                google: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>,
+                apple: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.68 7.28-.62 1.57-1.44 3.14-2.73 3.93zM12.03 7.25c-.02-2.23 1.76-4.07 3.9-4.25.26 2.5-2.01 4.5-3.9 4.25z"/></svg>,
+                cart: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>,
+                trash: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>,
+                plus: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>,
+                minus: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 12h14"/></svg>,
+                search: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>,
+                x: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>,
+                sun: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,
+                moon: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
+                edit: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+                layout: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>,
+                heart: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
+                heartFilled: <svg fill="currentColor" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
+                share: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M8.59 13.51l6.83 3.98m-.01-10.98l-6.82 3.98M21 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm-11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/></svg>,
+                star: <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 8.19 8.63 1 9.24l5.46 4.73L4.82 21z"/></svg>,
+                camera: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>,
+                message: <svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
             };
-            return <div style={{ width: size, height: size }} className={className}>{icons[name]}</div>;
+            return <div style={{width: size, height: size}} className={className}>{icons[name]}</div>;
         };
 
-        const AdvancedEcommerce = () => {
+        const DesignPortfolio = () => {
             // AUTH STATE
             const [user, setUser] = useState(null);
             const [authLoading, setAuthLoading] = useState(true);
@@ -187,11 +109,10 @@
             const [sortBy, setSortBy] = useState('newest');
             const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem('ch_cart') || '[]'));
             const [wishlist, setWishlist] = useState(() => JSON.parse(localStorage.getItem('ch_wishlist') || '[]'));
-            const [recentlyViewed, setRecentlyViewed] = useState(() => JSON.parse(localStorage.getItem('ch_recent') || '[]'));
             const [isCartOpen, setIsCartOpen] = useState(false);
             const [isWishlistOpen, setIsWishlistOpen] = useState(false);
-            const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
-            const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+            const [compareList, setCompareList] = useState(() => JSON.parse(localStorage.getItem('ch_compare') || '[]'));
+            const [showCompare, setShowCompare] = useState(false);
             const [selectedProduct, setSelectedProduct] = useState(null);
             const [searchQuery, setSearchQuery] = useState('');
             const [category, setCategory] = useState('all');
@@ -199,104 +120,54 @@
             const [loading, setLoading] = useState(true);
             const [toast, setToast] = useState(null);
 
-            // ADVANCED FILTER STATE
-            const [priceRange, setPriceRange] = useState([0, 10000]);
-            const [selectedRating, setSelectedRating] = useState(0);
-            const [inStockOnly, setInStockOnly] = useState(false);
-            const [showFilters, setShowFilters] = useState(false);
-
             // ADMIN STATE
             const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
             const [adminPassInput, setAdminPassInput] = useState('');
             const [isSyncing, setIsSyncing] = useState(false);
             const [editingProduct, setEditingProduct] = useState(null);
-            const [formData, setFormData] = useState({ title: '', category: 'flyer', price: '', sizes: '', image: '', description: '', stock: '', rating: 5 });
+            const [formData, setFormData] = useState({ title: '', category: 'flyer', price: '', sizes: '', image: '', description: '', stock: '', rating: '5' });
             const [adminTab, setAdminTab] = useState('inventory');
             const [orders, setOrders] = useState([]);
             const [messages, setMessages] = useState([]);
             const [orderSearch, setOrderSearch] = useState('');
             const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
-            const [showScroll, setShowScroll] = useState(false);
 
-            // ANALYTICS STATE
-            const [analytics, setAnalytics] = useState({
-                totalViews: 0,
-                totalSales: 0,
-                avgOrderValue: 0,
-                topProduct: null
-            });
-
-            // --- REDEFINED FEATURES STATE ---
-            // AI Assistant
-            const [showChat, setShowChat] = useState(false);
-            const [chatMessages, setChatMessages] = useState([
-                { sender: 'bot', text: 'Hi! I am your AI Assistant. How can I help you today?' }
-            ]);
+            // NEW FEATURES STATE
+            const [recentlyViewed, setRecentlyViewed] = useState(() => JSON.parse(localStorage.getItem('ch_recent') || '[]'));
+            const [reviews, setReviews] = useState({});
+            const [reviewInput, setReviewInput] = useState("");
+            const [reviewRating, setReviewRating] = useState(5);
+            const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
+            const [userOrders, setUserOrders] = useState([]);
+            const [arProduct, setArProduct] = useState(null);
+            const [arActive, setArActive] = useState(false);
+            const [isCameraActive, setIsCameraActive] = useState(false);
+            const videoRef = React.useRef(null);
+            const [chatMessages, setChatMessages] = useState([{ sender: 'bot', text: 'Hi! I am your AI Assistant. How can I help you today?' }]);
             const [chatInput, setChatInput] = useState('');
 
-            // AR Preview
-            const [arActive, setArActive] = useState(false);
-            const [arProduct, setArProduct] = useState(null);
-            const [isCameraActive, setIsCameraActive] = useState(false);
-            const [facingMode, setFacingMode] = useState('environment'); // Default to back camera
-            const videoRef = useRef(null);
-
             useEffect(() => {
-                let stream = null;
-                if (isCameraActive) {
-                    if (videoRef.current && videoRef.current.srcObject) {
-                        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-                    }
-
-                    navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } })
-                        .then(s => {
-                            stream = s;
+                if (isCameraActive && arActive) {
+                    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                        .then(stream => {
                             if (videoRef.current) videoRef.current.srcObject = stream;
                         })
                         .catch(err => {
                             console.error("Camera error:", err);
-                            // Fallback to any camera if specific facing mode fails
-                            navigator.mediaDevices.getUserMedia({ video: true })
-                                .then(s => {
-                                    stream = s;
-                                    if (videoRef.current) videoRef.current.srcObject = s;
-                                })
-                                .catch(e => {
-                                    showToast("Unable to access camera. Please allow permissions.");
-                                    setIsCameraActive(false);
-                                });
+                            setIsCameraActive(false);
                         });
+                } else {
+                    if (videoRef.current && videoRef.current.srcObject) {
+                        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+                        videoRef.current.srcObject = null;
+                    }
                 }
                 return () => {
-                    if (stream) stream.getTracks().forEach(track => track.stop());
+                    if (videoRef.current && videoRef.current.srcObject) {
+                        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+                    }
                 };
-            }, [isCameraActive, facingMode]);
-
-            useEffect(() => {
-                if (!arActive) setIsCameraActive(false);
-            }, [arActive]);
-
-            useEffect(() => {
-                if (selectedProduct) {
-                    setRecentlyViewed(prev => {
-                        const filtered = prev.filter(p => p.id !== selectedProduct.id);
-                        const updated = [selectedProduct, ...filtered].slice(0, 4);
-                        localStorage.setItem('ch_recent', JSON.stringify(updated));
-                        return updated;
-                    });
-                }
-            }, [selectedProduct]);
-
-            // Product Comparison
-            const [compareList, setCompareList] = useState([]);
-            const [showCompare, setShowCompare] = useState(false);
-
-            // SCROLL EFFECT
-            useEffect(() => {
-                const checkScroll = () => setShowScroll(window.scrollY > 300);
-                window.addEventListener('scroll', checkScroll);
-                return () => window.removeEventListener('scroll', checkScroll);
-            }, []);
+            }, [isCameraActive, arActive]);
 
             const WHATSAPP_NUMBER = "233534657415";
             const BIN_ID = '6944b3a5d0ea881f403340b4';
@@ -313,7 +184,7 @@
 
             useEffect(() => {
                 if (!user && !authLoading && new URLSearchParams(window.location.search).get('demo') === 'true') {
-                    handleLogin('demo');
+                    handleLogin('google');
                 }
             }, [user, authLoading]);
 
@@ -329,444 +200,433 @@
                 fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Access-Key': API_KEY } })
                     .then(res => res.json())
                     .then(data => {
-                        let enriched = (data.record.products || []).map(p => ({
-                            ...p,
-                            category: p.category === 'handbags' ? 'handbag' : p.category, // Normalize plural to singular
-                            rating: p.rating || Math.floor(Math.random() * 2) + 4,
-                            views: p.views || Math.floor(Math.random() * 1000)
-                        }));
-
-                        // Fallback for Handbags if missing (Fix for empty category)
-                        if (!enriched.some(p => p.category === 'handbag')) {
-                            const mockHandbags = [
-                                { id: 'hb-1', title: 'Luxury Leather Tote', category: 'handbag', price: 450, image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop', description: 'Premium leather tote bag perfect for daily use.', stock: 15, rating: 5, views: 120 },
-                                { id: 'hb-2', title: 'Chic Crossbody Bag', category: 'handbag', price: 280, image: 'https://images.unsplash.com/photo-1591561954557-26941169b49e?q=80&w=800&auto=format&fit=crop', description: 'Stylish crossbody bag for evening outings.', stock: 8, rating: 4, views: 95 },
-                                { id: 'hb-3', title: 'Classic Clutch', category: 'handbag', price: 150, image: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?q=80&w=800&auto=format&fit=crop', description: 'Elegant clutch for formal events.', stock: 20, rating: 5, views: 210 }
+                        const enriched = (data.record.products || []).map(p => ({...p, stock: p.stock ?? 10, rating: p.rating ?? 5}));
+                        if (enriched.length === 0) {
+                            // Fallback products for demonstration
+                            const fallback = [
+                                { id: 1, title: 'Event Flyer PRO', category: 'flyer', price: 65, image: 'https://images.unsplash.com/photo-1572044162444-ad60f128bde7', description: 'Professional flyer design for corporate events and conferences.', stock: 15, rating: 5 },
+                                { id: 2, title: 'Wedding Poster', category: 'poster', price: 80, image: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc', description: 'Elegant wedding posters with custom typography and graphics.', stock: 8, rating: 4 },
+                                { id: 3, title: 'Premium Frame', category: 'frame', price: 150, image: 'https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3', description: 'Handcrafted wooden frames with premium glass and finish.', stock: 10, rating: 5 },
+                                { id: 4, title: 'Branded T-Shirt', category: 'tshirt', price: 45, image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518', description: 'High-quality cotton t-shirts with durable custom prints.', stock: 20, rating: 4 },
+                                { id: 5, title: 'Modern Handbag', category: 'handbags', price: 250, image: 'https://images.unsplash.com/photo-1584917033904-491a34d28dc1', description: 'Designer handbags with custom patterns and textures.', stock: 5, rating: 5 },
+                                { id: 6, title: 'Social Media Kit', category: 'photoshop', price: 120, image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113', description: 'Complete social media branding package with source files.', stock: 12, rating: 5 }
                             ];
-                            enriched = [...enriched, ...mockHandbags];
+                            setProducts(fallback);
+                        } else {
+                            setProducts(enriched);
                         }
-
-                        setProducts(enriched);
                         setOrders(data.record.orders || []);
                         setMessages(data.record.messages || []);
+                        setReviews(data.record.reviews || {});
                         setLoading(false);
                     })
-                    .catch(err => { console.error(err); setLoading(false); });
+                    .catch(() => {
+                        // Hardcoded fallbacks if API fails
+                        setProducts([
+                            { id: 1, title: 'Event Flyer PRO', category: 'flyer', price: 65, image: 'https://images.unsplash.com/photo-1572044162444-ad60f128bde7', description: 'Professional flyer design for corporate events and conferences.', stock: 15, rating: 5 },
+                            { id: 2, title: 'Wedding Poster', category: 'poster', price: 80, image: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc', description: 'Elegant wedding posters with custom typography and graphics.', stock: 8, rating: 4 },
+                            { id: 3, title: 'Premium Frame', category: 'frame', price: 150, image: 'https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3', description: 'Handcrafted wooden frames with premium glass and finish.', stock: 10, rating: 5 },
+                            { id: 4, title: 'Branded T-Shirt', category: 'tshirt', price: 45, image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518', description: 'High-quality cotton t-shirts with durable custom prints.', stock: 20, rating: 4 },
+                            { id: 5, title: 'Modern Handbag', category: 'handbags', price: 250, image: 'https://images.unsplash.com/photo-1584917033904-491a34d28dc1', description: 'Designer handbags with custom patterns and textures.', stock: 5, rating: 5 }
+                        ]);
+                        setLoading(false);
+                    });
             }, []);
 
-            // ADVANCED ANALYTICS
             useEffect(() => {
-                if (orders.length > 0) {
-                    const totalSales = orders.reduce((sum, o) => sum + o.total, 0);
-                    const avgOrderValue = totalSales / orders.length;
-                    const topProduct = products.reduce((max, p) => (p.views > (max.views || 0) ? p : max), {});
-                    setAnalytics({
-                        totalViews: products.reduce((sum, p) => sum + (p.views || 0), 0),
-                        totalSales: totalSales,
-                        avgOrderValue: avgOrderValue,
-                        topProduct: topProduct
+                localStorage.setItem('ch_cart', JSON.stringify(cart));
+            }, [cart]);
+
+            useEffect(() => {
+                localStorage.setItem('ch_wishlist', JSON.stringify(wishlist));
+            }, [wishlist]);
+
+            useEffect(() => {
+                localStorage.setItem('ch_compare', JSON.stringify(compareList));
+            }, [compareList]);
+
+            useEffect(() => {
+                if (selectedProduct) {
+                    setRecentlyViewed(prev => {
+                        const filtered = prev.filter(p => p.id !== selectedProduct.id);
+                        const updated = [selectedProduct, ...filtered].slice(0, 4);
+                        localStorage.setItem('ch_recent', JSON.stringify(updated));
+                        return updated;
                     });
                 }
-            }, [orders, products]);
+            }, [selectedProduct]);
 
-            // UTILITY FUNCTIONS
+            useEffect(() => {
+                localStorage.setItem('ch_theme', darkMode ? 'dark' : 'light');
+            }, [darkMode]);
+
+            useEffect(() => {
+                if (isOrderHistoryOpen && user) {
+                    setUserOrders(orders.filter(o => o.email === user.email || o.userId === user.uid));
+                }
+            }, [isOrderHistoryOpen, orders, user]);
+
+            useEffect(() => {
+                if (view === 'admin' && isAdminLoggedIn && products.length > 0) {
+                    const ctx = document.getElementById('categoryChart')?.getContext('2d');
+                    if (ctx) {
+                        const counts = products.reduce((acc, p) => ({...acc, [p.category]: (acc[p.category] || 0) + 1}), {});
+                        if (window.myChart) window.myChart.destroy();
+                        window.myChart = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: Object.keys(counts),
+                                datasets: [{
+                                    label: 'Stock Count',
+                                    data: Object.values(counts),
+                                    backgroundColor: 'rgba(139, 92, 246, 0.6)',
+                                    borderColor: '#8b5cf6',
+                                    borderWidth: 2,
+                                    borderRadius: 8
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                                }
+                            }
+                        });
+                    }
+                }
+            }, [view, isAdminLoggedIn, products]);
+
+            // AUTH HANDLERS
+            const handleLogin = (providerType) => {
+                const demoUser = {
+                    uid: 'demo-user',
+                    displayName: 'Demo User',
+                    email: 'demo@example.com',
+                    photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'
+                };
+
+                // Controlled bypass for automated testing
+                if (new URLSearchParams(window.location.search).get('demo') === 'true') {
+                    setUser(demoUser);
+                    showToast("Logged in as Demo User");
+                    return;
+                }
+
+                let provider = new firebase.auth.GoogleAuthProvider();
+                if (providerType === 'apple') {
+                    provider = new firebase.auth.OAuthProvider('apple.com');
+                }
+                auth.signInWithPopup(provider).catch(err => {
+                    console.error("Auth failed:", err);
+                    alert("Authentication failed: " + err.message);
+                });
+            };
+
+            const logout = () => {
+                auth.signOut().finally(() => {
+                    setUser(null);
+                    showToast("Logged out successfully");
+                });
+            };
+
+            // STORE LOGIC
+            const syncWithDB = async (newProducts, newOrders, newMessages, newReviews) => {
+                setIsSyncing(true);
+                const payload = {
+                    products: newProducts || products,
+                    orders: newOrders || orders,
+                    messages: newMessages || messages,
+                    reviews: newReviews || reviews
+                };
+                try {
+                    await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'X-Access-Key': API_KEY },
+                        body: JSON.stringify(payload)
+                    });
+                    if (newProducts) setProducts(newProducts);
+                    if (newOrders) setOrders(newOrders);
+                    if (newMessages) setMessages(newMessages);
+                    showToast("Database Updated Successfully");
+                } catch (e) { alert("Sync failed."); }
+                setIsSyncing(false);
+            };
+
             const showToast = (msg) => {
                 setToast(msg);
                 setTimeout(() => setToast(null), 3000);
             };
 
-            const handleLogin = (provider) => {
-                if (provider === 'google') {
-                    const googleProvider = new firebase.auth.GoogleAuthProvider();
-                    auth.signInWithPopup(googleProvider).catch(err => {
-                        console.warn('Google auth failed, using demo mode:', err);
-                        auth.signInAnonymously().catch(e => console.error(e));
-                    });
-                } else if (provider === 'apple') {
-                    const appleProvider = new firebase.auth.OAuthProvider('apple.com');
-                    auth.signInWithPopup(appleProvider).catch(err => {
-                        console.warn('Apple auth failed, using demo mode:', err);
-                        auth.signInAnonymously().catch(e => console.error(e));
-                    });
-                } else if (provider === 'demo') {
-                    // auth.signInAnonymously().catch(err => console.error(err));
-                    // Bypass Firebase Auth for Guest/Demo mode
-                    setUser({
-                        displayName: 'Guest',
-                        email: 'guest@example.com',
-                        uid: 'guest-' + Date.now()
-                    });
+            const handleShare = async (product) => {
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: product.title,
+                            text: `Check out this ${product.title} on CreativeHub!`,
+                            url: window.location.href
+                        });
+                    } catch (err) { console.log(err); }
+                } else {
+                    navigator.clipboard.writeText(window.location.href);
+                    showToast('Link copied to clipboard!');
                 }
             };
 
-            const logout = () => {
-                auth.signOut();
-                setUser(null); // Explicitly clear local user state for Guest mode
-                setCart([]);
-                setWishlist([]);
-                localStorage.removeItem('ch_cart');
-                localStorage.removeItem('ch_wishlist');
-            };
+            const handleAddReview = () => {
+                if (!user) return showToast('Please login to leave a review');
+                if (!reviewInput.trim()) return;
 
-            const syncWithDB = (newProducts = null, newOrders = null, newMessages = null) => {
-                setIsSyncing(true);
-                const payload = {
-                    products: newProducts !== null ? newProducts : products,
-                    orders: newOrders !== null ? newOrders : orders,
-                    messages: newMessages !== null ? newMessages : messages
+                const newReview = {
+                    id: Date.now(),
+                    userId: user.uid,
+                    userName: user.displayName || 'Anonymous',
+                    rating: reviewRating,
+                    comment: reviewInput,
+                    date: new Date().toLocaleDateString()
                 };
-                fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'X-Access-Key': API_KEY },
-                    body: JSON.stringify(payload)
-                })
-                    .then(() => {
-                        if (newProducts !== null) setProducts(newProducts);
-                        if (newOrders !== null) setOrders(newOrders);
-                        if (newMessages !== null) setMessages(newMessages);
-                        showToast('Database updated successfully!');
-                        setIsSyncing(false);
-                    })
-                    .catch(err => { console.error(err); setIsSyncing(false); });
+                const productReviews = reviews[selectedProduct.id] || [];
+                const updatedReviews = { ...reviews, [selectedProduct.id]: [newReview, ...productReviews] };
+                setReviews(updatedReviews);
+                setReviewInput("");
+                setReviewRating(5);
+                syncWithDB(null, null, null, updatedReviews);
+                showToast('Review added!');
             };
 
-            // ADVANCED FILTERING
-            const filteredProducts = useMemo(() => {
-                return products
-                    .filter(p => {
-                        const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.description.toLowerCase().includes(searchQuery.toLowerCase());
-                        const matchesCategory = category === 'all' || p.category === category;
-                        const matchesPrice = p.price >= priceRange[0] && p.price <= priceRange[1];
-                        const matchesRating = selectedRating === 0 || p.rating >= selectedRating;
-                        const matchesStock = !inStockOnly || p.stock > 0;
-                        return matchesSearch && matchesCategory && matchesPrice && matchesRating && matchesStock;
-                    })
-                    .sort((a, b) => {
-                        if (sortBy === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
-                        if (sortBy === 'price-low') return a.price - b.price;
-                        if (sortBy === 'price-high') return b.price - a.price;
-                        if (sortBy === 'name-az') return a.title.localeCompare(b.title);
-                        if (sortBy === 'rating') return b.rating - a.rating;
-                        if (sortBy === 'trending') return b.views - a.views;
-                        return 0;
-                    });
-            }, [products, searchQuery, category, priceRange, selectedRating, inStockOnly, sortBy]);
+            const handleFormSubmit = (e) => {
+                e.preventDefault();
+                const newProduct = {
+                    ...formData,
+                    id: editingProduct ? editingProduct.id : Date.now(),
+                    price: parseFloat(formData.price),
+                    stock: parseInt(formData.stock || 10),
+                    rating: parseInt(formData.rating || 5),
+                    sizes: formData.sizes.split(',').map(s => s.trim())
+                };
+                const updatedList = editingProduct ? products.map(p => p.id === editingProduct.id ? newProduct : p) : [...products, newProduct];
+                syncWithDB(updatedList, null, null);
+                setFormData({ title: '', category: 'flyer', price: '', sizes: '', image: '', description: '', stock: '', rating: '5' });
+                setEditingProduct(null);
+            };
 
-            const cartTotal = useMemo(() => cart.reduce((sum, item) => sum + (item.price * item.qty), 0), [cart]);
+            const startEdit = (p) => {
+                setEditingProduct(p);
+                setFormData({ ...p, price: p.price.toString(), stock: (p.stock || 10).toString(), rating: (p.rating || 5).toString(), sizes: p.sizes.join(', ') });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
 
             const addToCart = (product) => {
-                const existingItem = cart.find(item => item.id === product.id);
-                let updatedCart;
-                if (existingItem) {
-                    updatedCart = cart.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
-                } else {
-                    updatedCart = [...cart, { ...product, qty: 1 }];
-                }
-                setCart(updatedCart);
-                localStorage.setItem('ch_cart', JSON.stringify(updatedCart));
-                showToast('Added to cart!');
+                setCart(prev => {
+                    const existing = prev.find(item => item.id === product.id);
+                    if (existing) return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
+                    return [...prev, { ...product, qty: 1 }];
+                });
+                showToast(`Added ${product.title} to cart!`);
+            };
+
+            const updateQty = (id, delta) => {
+                setCart(prev => prev.map(item => item.id === id ? { ...item, qty: Math.max(1, item.qty + delta) } : item));
             };
 
             const removeFromCart = (id) => {
-                const updatedCart = cart.filter(item => item.id !== id);
-                setCart(updatedCart);
-                localStorage.setItem('ch_cart', JSON.stringify(updatedCart));
-            };
-
-            const updateQty = (id, change) => {
-                const updatedCart = cart.map(item => {
-                    if (item.id === id) {
-                        const newQty = item.qty + change;
-                        return newQty > 0 ? { ...item, qty: newQty } : null;
-                    }
-                    return item;
-                }).filter(Boolean);
-                setCart(updatedCart);
-                localStorage.setItem('ch_cart', JSON.stringify(updatedCart));
+                setCart(prev => prev.filter(item => item.id !== id));
             };
 
             const toggleWishlist = (product) => {
-                const isInWishlist = wishlist.find(item => item.id === product.id);
-                const updatedWishlist = isInWishlist ? wishlist.filter(item => item.id !== product.id) : [...wishlist, product];
-                setWishlist(updatedWishlist);
-                localStorage.setItem('ch_wishlist', JSON.stringify(updatedWishlist));
+                const exists = wishlist.find(item => item.id === product.id);
+                if (exists) {
+                    setWishlist(prev => prev.filter(item => item.id !== product.id));
+                    showToast("Removed from wishlist");
+                } else {
+                    setWishlist(prev => [...prev, product]);
+                    showToast("Added to wishlist");
+                }
             };
 
-            // CHECKOUT REDIRECT STATE
-            const [isCheckoutRedirect, setIsCheckoutRedirect] = useState(false);
+            const toggleCompare = (product) => {
+                const exists = compareList.find(item => item.id === product.id);
+                if (exists) {
+                    setCompareList(prev => prev.filter(item => item.id !== product.id));
+                    showToast("Removed from comparison");
+                } else {
+                    if (compareList.length >= 4) {
+                        showToast("You can compare up to 4 products");
+                        return;
+                    }
+                    setCompareList(prev => [...prev, product]);
+                    showToast("Added to comparison");
+                }
+            };
+
+            const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            const filteredProducts = useMemo(() => {
+                let result = products.filter(p => {
+                    const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesCat = category === 'all' || p.category === category;
+                    return matchesSearch && matchesCat;
+                });
+
+                if (sortBy === 'price-low') result.sort((a, b) => a.price - b.price);
+                else if (sortBy === 'price-high') result.sort((a, b) => b.price - a.price);
+                else if (sortBy === 'name-az') result.sort((a, b) => a.title.localeCompare(b.title));
+                else if (sortBy === 'newest') result.sort((a, b) => b.id - a.id);
+
+                return result;
+            }, [products, searchQuery, category, sortBy]);
 
             const handleCheckout = () => {
-                if (cart.length === 0) return;
-
-                // FORCE LOGIN FOR GUEST USERS
-                if (user.email === 'guest@example.com') {
-                    setIsCheckoutRedirect(true);
-                    logout();
-                    showToast('Please sign in to complete your order.');
-                    return;
-                }
-
-                const itemsList = cart.map(item => `${item.title} (x${item.qty})`).join(', ');
-                const message = `Hi! I'd like to order: ${itemsList}. Total: GH₵${cartTotal.toFixed(2)}`;
-                window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`);
                 const newOrder = {
-                    id: 'ORD-' + Date.now(),
-                    userName: user.displayName || 'Guest',
-                    userEmail: user.email || 'guest@example.com',
-                    items: cart,
+                    id: Math.random().toString(36).substr(2, 9).toUpperCase(),
+                    userName: user.displayName,
+                    userEmail: user.email,
+                    items: [...cart],
                     total: cartTotal,
                     timestamp: new Date().toISOString()
                 };
-                syncWithDB(null, [...orders, newOrder], null);
+                const updatedOrders = [...orders, newOrder];
+                syncWithDB(null, updatedOrders, null);
                 setCart([]);
-                localStorage.removeItem('ch_cart');
-                setIsCartOpen(false);
-                showToast('Order sent! Check WhatsApp for confirmation.');
+
+                const message = `*NEW ORDER - CreativeHub*\n\n` +
+                    cart.map((item, i) => `${i+1}. ${item.title} (x${item.qty}) - GH₵${(item.price * item.qty).toFixed(2)}`).join('\n') +
+                    `\n\n*Total Amount: GH₵${cartTotal.toFixed(2)}*\n\nPlease confirm my order!`;
+                window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+            };
+
+            const handleChat = (e) => {
+                e.preventDefault();
+                const input = chatInput.trim().toLowerCase();
+                if (!input) return;
+
+                const userMsg = { sender: 'user', text: chatInput };
+                setChatMessages(prev => [...prev, userMsg]);
+                setChatInput('');
+
+                setTimeout(() => {
+                    let botResponse = "I'm not sure about that. Would you like to see our top products?";
+
+                    if (input.includes('hello') || input.includes('hi')) {
+                        botResponse = "Hello! How can I help you find the perfect design today?";
+                    } else if (input.includes('price') || input.includes('how much')) {
+                        botResponse = "Our prices vary by category. Flyers start at GH₵ 50, and custom frames start at GH₵ 120. Anything specific you're looking for?";
+                    } else if (input.includes('poster') || input.includes('frame') || input.includes('tshirt') || input.includes('flyer') || input.includes('handbags') || input.includes('photoshop')) {
+                        const keyword = ['poster', 'frame', 'tshirt', 'flyer', 'handbags', 'photoshop'].find(word => input.includes(word));
+                        const found = products.filter(p => p.category.toLowerCase().includes(keyword));
+                        if (found.length > 0) {
+                            botResponse = `I found something you might like! I've filtered the store for ${keyword} products for you. We have ${found.length} items available.`;
+                            setCategory(keyword);
+                        } else {
+                            botResponse = `We usually have ${keyword} items, but they might be out of stock right now.`;
+                        }
+                    } else if (input.includes('contact') || input.includes('call')) {
+                        botResponse = `You can reach us at ${WHATSAPP_NUMBER} or use the contact form below.`;
+                    }
+
+                    setChatMessages(prev => [...prev, { sender: 'bot', text: botResponse }]);
+                }, 800);
             };
 
             const handleContactSubmit = (e) => {
                 e.preventDefault();
                 const newMessage = {
-                    id: 'MSG-' + Date.now(),
+                    id: Date.now(),
                     ...contactForm,
                     timestamp: new Date().toISOString()
                 };
-                syncWithDB(null, null, [...messages, newMessage]);
+                const updatedMessages = [...messages, newMessage];
+                syncWithDB(null, null, updatedMessages);
+
+                // Functional mailto as requested
+                const mailtoLink = `mailto:andybright484@gmail.com?subject=New Message from ${contactForm.name}&body=${encodeURIComponent(contactForm.message)} (From: ${contactForm.email})`;
+                window.location.href = mailtoLink;
+
                 setContactForm({ name: '', email: '', message: '' });
-                showToast('Message sent successfully!');
+                showToast("Message Sent to Andy Bright!");
             };
 
-            const handleFormSubmit = (e) => {
-                e.preventDefault();
-                if (editingProduct) {
-                    const updatedProducts = products.map(p => p.id === editingProduct.id ? { ...p, ...formData } : p);
-                    syncWithDB(updatedProducts);
-                    setEditingProduct(null);
-                } else {
-                    const newProduct = {
-                        id: 'PRD-' + Date.now(),
-                        ...formData,
-                        createdAt: new Date().toISOString(),
-                        rating: parseInt(formData.rating),
-                        views: 0
-                    };
-                    syncWithDB([...products, newProduct]);
-                }
-                setFormData({ title: '', category: 'flyer', price: '', sizes: '', image: '', description: '', stock: '', rating: 5 });
-            };
+            if (authLoading || loading) return <div className="h-screen flex items-center justify-center bg-[#0f172a] text-white">Loading CreativeHub...</div>;
 
-            const startEdit = (product) => {
-                setEditingProduct(product);
-                setFormData({
-                    title: product.title,
-                    category: product.category,
-                    price: product.price,
-                    sizes: product.sizes.join(', '),
-                    image: product.image,
-                    description: product.description,
-                    stock: product.stock,
-                    rating: product.rating
-                });
-            };
-
-            // FEATURE HANDLERS
-            const handleChatSubmit = (e) => {
-                e.preventDefault();
-                if (!chatInput.trim()) return;
-                const userMsg = { sender: 'user', text: chatInput };
-                setChatMessages(prev => [...prev, userMsg]);
-                setChatInput('');
-
-                // MOCK AI LOGIC
-                setTimeout(() => {
-                    let botText = "I'm not sure about that. Try asking about price, stock, or specific products.";
-                    const lower = userMsg.text.toLowerCase();
-
-                    // Search in products
-                    const matchedProducts = products.filter(p =>
-                        p.title.toLowerCase().includes(lower) ||
-                        p.category.toLowerCase().includes(lower) ||
-                        p.description.toLowerCase().includes(lower)
-                    );
-
-                    if (matchedProducts.length > 0) {
-                        const top = matchedProducts[0];
-                        botText = `I found something you might like! The "${top.title}" is available for GH₵${top.price} in the ${top.category} category. Would you like to see it?`;
-                        if (matchedProducts.length > 1) {
-                            botText += ` I also found ${matchedProducts.length - 1} other similar items.`;
-                        }
-                    } else if (lower.includes('price') || lower.includes('cost')) {
-                        botText = "Our prices are very competitive! You can filter by price range in the store to find products within your budget.";
-                    } else if (lower.includes('hello') || lower.includes('hi')) {
-                        botText = "Hello! I am your CreativeHub AI assistant. I can help you find designs, check prices, or answer questions about our services. What are you looking for today?";
-                    } else if (lower.includes('shipping') || lower.includes('deliver')) {
-                        botText = "We offer instant digital delivery for design files, and 3-5 days for physical items like frames and t-shirts.";
-                    } else if (lower.includes('contact') || lower.includes('address')) {
-                        botText = "We are based in Accra, Ghana. You can reach our team directly via WhatsApp at +233 53 465 7415 for custom requests!";
-                    }
-
-                    setChatMessages(prev => [...prev, { sender: 'bot', text: botText }]);
-                }, 1000);
-            };
-
-            const toggleCompare = (product) => {
-                if (compareList.find(p => p.id === product.id)) {
-                    setCompareList(compareList.filter(p => p.id !== product.id));
-                } else {
-                    if (compareList.length >= 3) {
-                        showToast('You can only compare up to 3 products.');
-                        return;
-                    }
-                    setCompareList([...compareList, product]);
-                    showToast('Added to comparison!');
-                }
-            };
-
-            const handleShare = (product) => {
-                const shareText = `Check out this amazing design: ${product.title} for only GH₵${product.price} at CreativeHub!`;
-                const shareUrl = window.location.origin + window.location.pathname;
-
-                if (navigator.share) {
-                    navigator.share({
-                        title: product.title,
-                        text: shareText,
-                        url: shareUrl
-                    }).catch(() => {
-                        navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
-                        showToast('Link copied to clipboard!');
-                    });
-                } else {
-                    navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
-                    showToast('Link copied to clipboard!');
-                }
-            };
-
-            const handleReviewSubmit = (e, productId) => {
-                e.preventDefault();
-                const newReview = {
-                    id: 'REV-' + Date.now(),
-                    userName: user.displayName || 'Guest',
-                    userEmail: user.email,
-                    rating: reviewForm.rating,
-                    comment: reviewForm.comment,
-                    timestamp: new Date().toISOString()
-                };
-
-                const updatedProducts = products.map(p => {
-                    if (p.id === productId) {
-                        return { ...p, reviews: [...(p.reviews || []), newReview] };
-                    }
-                    return p;
-                });
-
-                syncWithDB(updatedProducts);
-                setReviewForm({ rating: 5, comment: '' });
-                showToast('Review submitted!');
-
-                // Update selectedProduct to show new review immediately
-                setSelectedProduct(prev => ({ ...prev, reviews: [...(prev.reviews || []), newReview] }));
-            };
-
-            if (authLoading) {
-                return <div className="flex items-center justify-center h-screen"><div className="text-2xl font-bold">Loading...</div></div>;
-            }
-
+            // --- STEP 1: LOGIN/SIGNUP VIEW ---
             if (!user) {
                 return (
-                    <div className="login-gradient min-h-screen flex items-center justify-center p-4">
-                        <div className="w-full max-w-md">
-                            <div className="text-center mb-12">
-                                <h1 className="text-4xl font-black text-white mb-2">CreativeHub.</h1>
-                                <p className="text-purple-200">Premium Designs & Creative Services</p>
-                            </div>
+                    <div className="min-h-screen flex items-center justify-center login-gradient p-6">
+                        <div className="w-full max-w-md p-10 rounded-[2.5rem] admin-glass text-white text-center shadow-2xl border-t border-white/20">
+                            <h1 className="text-4xl font-black mb-2 tracking-tighter">CreativeHub.</h1>
+                            <p className="text-gray-400 mb-10 text-sm">Sign in to start shopping</p>
                             <div className="space-y-4">
-                                <button onClick={() => handleLogin('google')} className="w-full bg-white text-gray-900 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:shadow-2xl transition">
-                                    <Icon name="google" size={20} /> Sign in with Google
+                                <button onClick={() => handleLogin('google')} className="w-full bg-white text-gray-900 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-gray-100 transition">
+                                    <Icon name="google" size={24} /> Continue with Google
                                 </button>
-                                <button onClick={() => handleLogin('apple')} className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:shadow-2xl transition">
-                                    <Icon name="apple" size={20} /> Sign in with Apple
+                                <button onClick={() => handleLogin('apple')} className="w-full bg-black text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-gray-900 transition">
+                                    <Icon name="apple" size={24} /> Continue with iCloud
                                 </button>
-                                {!isCheckoutRedirect && (
-                                    <button onClick={() => handleLogin('demo')} className="w-full bg-purple-600 text-white py-4 rounded-2xl font-bold hover:bg-purple-700 transition">
-                                        Continue as Guest
-                                    </button>
-                                )}
                             </div>
+                            <p className="mt-8 text-[10px] text-gray-500 uppercase tracking-widest">Secure 256-bit Encryption</p>
                         </div>
                     </div>
                 );
             }
 
+            // --- STEP 2: ADMIN VIEW ---
             if (view === 'admin') {
-                if (user.email !== 'andybright484@gmail.com' && !isAdminLoggedIn) {
+                if (user.email !== 'andybright484@gmail.com') {
                     return (
-                        <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4">
-                            <div className="bg-gray-800 p-8 rounded-3xl shadow-2xl w-full max-w-md border border-purple-500/30">
-                                <h2 className="text-2xl font-bold mb-6 text-center">Admin Access</h2>
-                                <input
-                                    type="password"
-                                    placeholder="Enter Admin Key"
-                                    className="w-full p-4 rounded-2xl bg-gray-700 mb-4 border border-gray-600 focus:border-purple-500 outline-none transition"
-                                    value={adminPassInput}
-                                    onChange={(e) => setAdminPassInput(e.target.value)}
-                                    onKeyPress={(e) => e.key === 'Enter' && (adminPassInput === 'admin123' ? setIsAdminLoggedIn(true) : alert('Invalid Key'))}
-                                />
-                                <button
-                                    onClick={() => {
-                                        if (adminPassInput === 'admin123') {
-                                            setIsAdminLoggedIn(true);
-                                        } else {
-                                            alert('Invalid Key');
-                                        }
-                                    }}
-                                    className="w-full py-4 bg-purple-600 rounded-2xl font-bold hover:bg-purple-700 transition"
-                                >
-                                    Verify Access
-                                </button>
-                                <button onClick={() => { setView('store'); window.location.hash = ''; }} className="w-full mt-4 text-gray-400 hover:text-white transition text-center font-bold">Back to Store</button>
+                        <div className="min-h-screen flex items-center justify-center bg-[#0f172a] p-6 text-white text-center">
+                            <div className="w-full max-w-md p-8 rounded-3xl admin-glass">
+                                <h1 className="text-2xl font-black mb-4">Access Denied</h1>
+                                <p className="text-gray-400 text-sm mb-8">You do not have permission to access the administrative dashboard.</p>
+                                <button onClick={() => { setView('store'); window.location.hash = ''; }} className="w-full bg-purple-600 py-4 rounded-xl font-bold hover:bg-purple-700 transition">Return to Store</button>
                             </div>
                         </div>
                     );
                 }
+
                 return (
-                    <div className={`${darkMode ? 'bg-gray-950 text-white' : 'bg-gray-50 text-gray-900'} min-h-screen p-4 md:p-8`}>
+                    <div className="min-h-screen bg-[#0f172a] text-white p-4 md:p-10">
                         <div className="max-w-7xl mx-auto">
-                            <div className="flex justify-between items-center mb-8">
-                                <h1 className="text-3xl font-black">Admin Dashboard</h1>
-                                <button onClick={() => { setView('store'); window.location.hash = ''; }} className="bg-purple-600 text-white px-6 py-2 rounded-xl font-bold">Back to Store</button>
-                            </div>
+                            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-12">
+                                <div>
+                                    <div className="flex items-center gap-2 text-purple-500 font-bold text-sm uppercase tracking-widest mb-1">
+                                        <Icon name="layout" size={14} /> Admin Dashboard
+                                    </div>
+                                    <h1 className="text-4xl font-black">Inventory Manager</h1>
+                                </div>
+                                <div className="flex gap-4">
+                                    {isSyncing && <span className="mt-2 text-blue-400 text-sm animate-pulse font-bold">Saving Changes...</span>}
+                                    <button onClick={() => window.location.hash = ''} className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 font-bold transition">View Store</button>
+                                    <button onClick={() => setIsAdminLoggedIn(false)} className="px-6 py-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl font-bold">Admin Logout</button>
+                                </div>
+                            </header>
 
-                            {/* Analytics Overview */}
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                                <div className="admin-glass p-6 rounded-2xl">
-                                    <div className="text-sm text-gray-400 mb-2">Total Views</div>
-                                    <div className="text-3xl font-black text-purple-500">{analytics.totalViews}</div>
-                                </div>
-                                <div className="admin-glass p-6 rounded-2xl">
-                                    <div className="text-sm text-gray-400 mb-2">Total Sales</div>
-                                    <div className="text-3xl font-black text-green-500">GH₵{analytics.totalSales.toFixed(2)}</div>
-                                </div>
-                                <div className="admin-glass p-6 rounded-2xl">
-                                    <div className="text-sm text-gray-400 mb-2">Avg Order Value</div>
-                                    <div className="text-3xl font-black text-blue-500">GH₵{analytics.avgOrderValue.toFixed(2)}</div>
-                                </div>
-                                <div className="admin-glass p-6 rounded-2xl">
-                                    <div className="text-sm text-gray-400 mb-2">Top Product</div>
-                                    <div className="text-lg font-bold truncate">{analytics.topProduct?.title || 'N/A'}</div>
-                                </div>
-                            </div>
+                             <div className="flex gap-6 border-b border-white/10 mb-8">
+                                <button onClick={() => setAdminTab('inventory')} className={`pb-4 px-2 font-bold transition-all ${adminTab === 'inventory' ? 'text-purple-500 border-b-2 border-purple-500' : 'text-gray-500'}`}>Inventory</button>
+                                <button onClick={() => setAdminTab('orders')} className={`pb-4 px-2 font-bold transition-all ${adminTab === 'orders' ? 'text-purple-500 border-b-2 border-purple-500' : 'text-gray-500'}`}>Orders ({orders.length})</button>
+                                <button onClick={() => setAdminTab('messages')} className={`pb-4 px-2 font-bold transition-all ${adminTab === 'messages' ? 'text-purple-500 border-b-2 border-purple-500' : 'text-gray-500'}`}>Messages ({messages.length})</button>
+                             </div>
 
-                            {/* Admin Tabs */}
-                            <div className="flex gap-4 mb-8 border-b border-white/10">
-                                {['inventory', 'orders', 'messages'].map(tab => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => setAdminTab(tab)}
-                                        className={`px-6 py-3 font-bold capitalize transition ${adminTab === tab ? 'text-purple-500 border-b-2 border-purple-500' : 'text-gray-500'}`}
-                                    >
-                                        {tab}
-                                    </button>
-                                ))}
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
+                                <div className="lg:col-span-8 admin-glass p-8 rounded-3xl">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="font-bold uppercase tracking-tighter text-gray-400">Category Distribution</h3>
+                                        <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-1 rounded">Live Data</span>
+                                    </div>
+                                    <div className="h-[200px] flex items-center justify-center">
+                                        <canvas id="categoryChart"></canvas>
+                                    </div>
+                                </div>
+                                <div className="lg:col-span-4 space-y-6">
+                                    <div className="admin-glass p-8 rounded-3xl border-l-4 border-purple-500">
+                                        <div className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Total Value</div>
+                                        <div className="text-4xl font-black text-purple-500">GH₵{products.reduce((acc, p) => acc + p.price, 0).toFixed(2)}</div>
+                                    </div>
+                                    <div className="admin-glass p-8 rounded-3xl border-l-4 border-blue-500">
+                                        <div className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Stock Level</div>
+                                        <div className="text-4xl font-black text-blue-500">{products.length} <span className="text-sm text-gray-500">items</span></div>
+                                    </div>
+                                </div>
                             </div>
 
                             {adminTab === 'messages' ? (
@@ -813,7 +673,11 @@
                                                 o.id.toLowerCase().includes(orderSearch.toLowerCase()) ||
                                                 o.items.some(it => it.title.toLowerCase().includes(orderSearch.toLowerCase()))
                                             ).map((order) => (
-                                                <div key={order.id} className="bg-white/5 border border-white/10 p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 group">
+                                                <motion.div
+                                                    layout key={order.id}
+                                                    initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+                                                    className="bg-white/5 border border-white/10 p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 group"
+                                                >
                                                     <div className="flex-1 w-full">
                                                         <div className="flex items-center gap-3 mb-1">
                                                             <div className="text-xs text-purple-400 font-bold uppercase tracking-widest">ORDER #{order.id}</div>
@@ -839,144 +703,150 @@
                                                             <Icon name="trash" size={18} />
                                                         </button>
                                                     </div>
-                                                </div>
+                                                </motion.div>
                                             )).reverse()}
                                         </div>
                                     )}
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                                    <div className="lg:col-span-5">
-                                        <div className="p-8 rounded-3xl admin-glass sticky top-10">
-                                            <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                                                <Icon name={editingProduct ? 'edit' : 'plus'} /> {editingProduct ? 'Edit Product' : 'Upload New Product'}
-                                            </h2>
-                                            <form onSubmit={handleFormSubmit} className="space-y-4">
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                                <div className="lg:col-span-5">
+                                    <div className="p-8 rounded-3xl admin-glass sticky top-10">
+                                        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                                            <Icon name={editingProduct ? 'edit' : 'plus'} /> {editingProduct ? 'Edit Product' : 'Upload New Product'}
+                                        </h2>
+                                        <form onSubmit={handleFormSubmit} className="space-y-4">
+                                            <div>
+                                                <label className="text-xs text-gray-400 block mb-1 ml-1">Title</label>
+                                                <input type="text" required className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-purple-500" value={formData.title} onChange={e=>setFormData({...formData, title: e.target.value})} />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="text-xs text-gray-400 block mb-1 ml-1">Title</label>
-                                                    <input type="text" required className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-purple-500" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} />
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label className="text-xs text-gray-400 block mb-1 ml-1">Category</label>
-                                                        <select className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}>
-                                                            <option value="flyer">Flyer</option><option value="poster">Poster</option>
-                                                            <option value="tshirt">T-Shirt</option><option value="frame">Frame</option>
-                                                            <option value="photoshoot">Photoshoot</option><option value="handbag">Handbag</option>
-                                                            <option value="pendant">Pendant</option>
-                                                        </select>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-xs text-gray-400 block mb-1 ml-1">Price (GH₵)</label>
-                                                        <input type="number" required className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-purple-500" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} />
-                                                    </div>
+                                                    <label className="text-xs text-gray-400 block mb-1 ml-1">Category</label>
+                                                    <select className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.category} onChange={e=>setFormData({...formData, category: e.target.value})}>
+                                                        <option value="flyer">Flyer</option>
+                                                        <option value="poster">Poster</option>
+                                                        <option value="tshirt">T-Shirt</option>
+                                                        <option value="frame">Frame</option>
+                                                        <option value="photoshop">Photoshop</option>
+                                                        <option value="handbags">Handbags</option>
+                                                    </select>
                                                 </div>
                                                 <div>
-                                                    <label className="text-xs text-gray-400 block mb-1 ml-1">Sizes / Options (comma separated)</label>
-                                                    <input type="text" className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-purple-500" value={formData.sizes} onChange={e => setFormData({ ...formData, sizes: e.target.value })} />
+                                                    <label className="text-xs text-gray-400 block mb-1 ml-1">Price (GH₵)</label>
+                                                    <input type="number" required className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-purple-500" value={formData.price} onChange={e=>setFormData({...formData, price: e.target.value})} />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-gray-400 block mb-1 ml-1">Sizes / Options (comma separated)</label>
+                                                <input type="text" placeholder="S, M, L, XL" className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.sizes} onChange={e=>setFormData({...formData, sizes: e.target.value})} />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-gray-400 block mb-1 ml-1">Image URL</label>
+                                                <input type="url" required className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.image} onChange={e=>setFormData({...formData, image: e.target.value})} />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-gray-400 block mb-1 ml-1">Description</label>
+                                                <textarea required rows="3" className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.description} onChange={e=>setFormData({...formData, description: e.target.value})} />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-xs text-gray-400 block mb-1 ml-1">Stock Level</label>
+                                                    <input type="number" required className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.stock} onChange={e=>setFormData({...formData, stock: e.target.value})} />
                                                 </div>
                                                 <div>
-                                                    <label className="text-xs text-gray-400 block mb-1 ml-1">Image URL</label>
-                                                    <input type="url" required className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} />
+                                                    <label className="text-xs text-gray-400 block mb-1 ml-1">Rating (1-5)</label>
+                                                    <input type="number" min="1" max="5" required className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.rating} onChange={e=>setFormData({...formData, rating: e.target.value})} />
                                                 </div>
-                                                <div>
-                                                    <label className="text-xs text-gray-400 block mb-1 ml-1">Description</label>
-                                                    <textarea required rows="3" className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label className="text-xs text-gray-400 block mb-1 ml-1">Stock Level</label>
-                                                        <input type="number" required className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} />
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-xs text-gray-400 block mb-1 ml-1">Rating (1-5)</label>
-                                                        <input type="number" min="1" max="5" required className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none" value={formData.rating} onChange={e => setFormData({ ...formData, rating: e.target.value })} />
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-3 pt-4">
-                                                    <button type="submit" className="flex-1 bg-purple-600 p-4 rounded-xl font-bold hover:bg-purple-700 transition">{editingProduct ? 'Update Product' : 'Upload to Store'}</button>
-                                                    {editingProduct && (
-                                                        <button type="button" onClick={() => { setEditingProduct(null); setFormData({ title: '', category: 'flyer', price: '', sizes: '', image: '', description: '', stock: '', rating: 5 }) }} className="bg-white/10 px-6 rounded-xl">Cancel</button>
-                                                    )}
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-
-                                    <div className="lg:col-span-7">
-                                        <div className="flex justify-between items-center mb-6">
-                                            <h3 className="font-bold text-lg">Current Inventory ({products.length})</h3>
-                                            <button
-                                                onClick={() => {
-                                                    const headers = ['ID', 'Title', 'Category', 'Price', 'Stock', 'Rating'];
-                                                    const rows = products.map(p => [p.id, p.title, p.category, p.price, p.stock, p.rating]);
-                                                    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
-                                                    const blob = new Blob([csv], { type: 'text/csv' });
-                                                    const url = window.URL.createObjectURL(blob);
-                                                    const a = document.createElement('a');
-                                                    a.setAttribute('hidden', '');
-                                                    a.setAttribute('href', url);
-                                                    a.setAttribute('download', 'inventory.csv');
-                                                    document.body.appendChild(a);
-                                                    a.click();
-                                                    document.body.removeChild(a);
-                                                }}
-                                                className="text-[10px] font-bold uppercase tracking-widest text-purple-400 border border-purple-500/30 px-3 py-1 rounded-lg hover:bg-purple-500/10"
-                                            >
-                                                Export CSV
-                                            </button>
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {products.map(p => (
-                                                <div key={p.id} className={`admin-glass p-4 rounded-2xl flex gap-4 items-center border-l-4 ${p.stock < 5 ? 'border-red-500' : 'border-transparent'}`}>
-                                                    <img src={p.image} className="w-16 h-16 rounded-xl object-cover" />
-                                                    <div className="flex-1 overflow-hidden">
-                                                        <h4 className="font-bold text-sm truncate">{p.title}</h4>
-                                                        <p className="text-xs text-gray-500 uppercase tracking-tighter">{p.category} • GH₵{p.price} • ⭐{p.rating}</p>
-                                                    </div>
-                                                    <div className="flex gap-2">
-                                                        <button onClick={() => startEdit(p)} className="p-2 hover:text-purple-400 transition"><Icon name="edit" size={18} /></button>
-                                                        <button onClick={() => syncWithDB(products.filter(item => item.id !== p.id))} className="p-2 hover:text-red-500 transition"><Icon name="trash" size={18} /></button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
+                                            </div>
+                                            <div className="flex gap-3 pt-4">
+                                                <button type="submit" className="flex-1 bg-purple-600 p-4 rounded-xl font-bold hover:bg-purple-700 transition">{editingProduct ? 'Update Product' : 'Upload to Store'}</button>
+                                                {editingProduct && (
+                                                    <button type="button" onClick={() => {setEditingProduct(null); setFormData({title:'',category:'flyer',price:'',sizes:'',image:'',description:''})}} className="bg-white/10 px-6 rounded-xl">Cancel</button>
+                                                )}
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
+
+                                <div className="lg:col-span-7">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="font-bold text-lg">Current Inventory ({products.length})</h3>
+                                        <button
+                                            onClick={() => {
+                                                const headers = ['ID', 'Title', 'Category', 'Price', 'Stock'];
+                                                const rows = products.map(p => [p.id, p.title, p.category, p.price, p.stock]);
+                                                const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+                                                const blob = new Blob([csv], { type: 'text/csv' });
+                                                const url = window.URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.setAttribute('hidden', '');
+                                                a.setAttribute('href', url);
+                                                a.setAttribute('download', 'inventory.csv');
+                                                document.body.appendChild(a);
+                                                a.click();
+                                                document.body.removeChild(a);
+                                            }}
+                                            className="text-[10px] font-bold uppercase tracking-widest text-purple-400 border border-purple-500/30 px-3 py-1 rounded-lg hover:bg-purple-500/10"
+                                        >
+                                            Export CSV
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {products.map(p => (
+                                            <div key={p.id} className={`admin-glass p-4 rounded-2xl flex gap-4 items-center border-l-4 ${p.stock < 5 ? 'border-red-500' : 'border-transparent'}`}>
+                                                <img src={p.image} className="w-16 h-16 rounded-xl object-cover" />
+                                                <div className="flex-1 overflow-hidden">
+                                                    <h4 className="font-bold text-sm truncate">{p.title}</h4>
+                                                    <p className="text-xs text-gray-500 uppercase tracking-tighter">{p.category} • GH₵{p.price}</p>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => startEdit(p)} className="p-2 hover:text-purple-400 transition"><Icon name="edit" size={18}/></button>
+                                                    <button onClick={() => syncWithDB(products.filter(item => item.id !== p.id))} className="p-2 hover:text-red-500 transition"><Icon name="trash" size={18}/></button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
                             )}
                         </div>
                     </div>
                 );
             }
 
-            // --- MAIN STOREFRONT VIEW ---
+            // --- STEP 3: MAIN STOREFRONT VIEW ---
             return (
-                <div className={`${darkMode ? 'dark bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} min-h-screen transition-colors duration-300`}>
+                <div className={`${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'} min-h-screen transition-colors duration-300`}>
                     {toast && <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] bg-gray-800 text-white px-6 py-3 rounded-full shadow-2xl border border-purple-500 animate-fade-in-up">{toast}</div>}
 
                     <nav className={`sticky top-0 z-50 ${darkMode ? 'bg-gray-900/80' : 'bg-white/80'} backdrop-blur-md border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
                         <div className="max-w-7xl mx-auto px-4">
+                            {/* Top Row: Brand & Actions */}
                             <div className="h-20 flex items-center justify-between gap-4">
                                 <h1 className="text-xl md:text-2xl font-black bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent shrink-0">
                                     CreativeHub.
                                 </h1>
 
                                 <div className="flex items-center gap-3">
+                                    {/* User Info - Optimized for all screens */}
                                     <div className="flex items-center gap-2 min-w-0">
                                         <img src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}`}
-                                            className="w-8 h-8 rounded-full border border-purple-500 shrink-0" />
+                                             className="w-8 h-8 rounded-full border border-purple-500 shrink-0" />
                                         <div className="flex flex-col">
                                             <span className="text-[10px] md:text-xs font-bold truncate max-w-[70px] sm:max-w-[120px]">
                                                 {user.email === 'andybright484@gmail.com' ? 'Andy Bright (Admin)' : user.displayName}
                                             </span>
-                                            <div className="flex gap-2 flex-wrap">
-                                                <button onClick={() => setIsOrderHistoryOpen(true)} className="text-[9px] md:text-[10px] text-purple-500 font-bold text-left underline">
+                                            <div className="flex gap-2">
+                                                <button onClick={() => setIsOrderHistoryOpen(true)} className="text-[9px] md:text-[10px] text-purple-500 font-bold underline">
                                                     My Orders
                                                 </button>
-                                                <button onClick={() => { setView('admin'); window.location.hash = '#/admin'; }} className="text-[9px] md:text-[10px] text-gray-500 font-bold text-left underline">
-                                                    Admin
-                                                </button>
-                                                <button onClick={logout} className="text-[9px] md:text-[10px] text-red-500 font-bold text-left underline">
+                                                {user.email === 'andybright484@gmail.com' && (
+                                                    <button onClick={() => { setView('admin'); window.location.hash = '#/admin'; }} className="text-[9px] md:text-[10px] text-gray-500 font-bold underline">
+                                                        Admin
+                                                    </button>
+                                                )}
+                                                <button onClick={logout} className="text-[9px] md:text-[10px] text-red-500 font-bold underline">
                                                     Logout
                                                 </button>
                                             </div>
@@ -986,6 +856,14 @@
                                     <div className="flex items-center gap-2">
                                         <button onClick={() => setDarkMode(!darkMode)} className="p-2 hover:bg-gray-200 rounded-full dark:hover:bg-gray-800">
                                             <Icon name={darkMode ? 'sun' : 'moon'} />
+                                        </button>
+                                        <button onClick={() => setShowCompare(true)} className="relative p-2 hover:bg-gray-200 rounded-full dark:hover:bg-gray-800">
+                                            <Icon name="layout" />
+                                            {compareList.length > 0 && (
+                                                <span className="absolute -top-1 -right-1 bg-blue-500 text-[10px] w-4 h-4 flex items-center justify-center rounded-full text-white">
+                                                    {compareList.length}
+                                                </span>
+                                            )}
                                         </button>
                                         <button onClick={() => setIsWishlistOpen(true)} className="relative p-2 hover:bg-gray-200 rounded-full dark:hover:bg-gray-800">
                                             <Icon name="heart" />
@@ -1007,6 +885,7 @@
                                 </div>
                             </div>
 
+                            {/* Second Row for Mobile Search / Unified Search Position */}
                             <div className="pb-4 md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:pb-0 md:w-full md:max-w-xs">
                                 <div className="relative w-full">
                                     <Icon name="search" className="absolute left-3 top-2.5 text-gray-400" size={18} />
@@ -1015,71 +894,12 @@
                                         placeholder="Search designs..."
                                         className={`w-full pl-10 pr-4 py-2 rounded-xl border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-transparent'} outline-none focus:ring-2 focus:ring-purple-500 text-sm`}
                                         value={searchQuery}
-                                        onChange={e => setSearchQuery(e.target.value)}
+                                        onChange={e=>setSearchQuery(e.target.value)}
                                     />
                                 </div>
                             </div>
                         </div>
                     </nav>
-
-                    {/* Advanced Filters */}
-                    <div className={`sticky top-20 z-40 ${darkMode ? 'bg-gray-800/50' : 'bg-white/50'} backdrop-blur-md border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                        <div className="max-w-7xl mx-auto px-4 py-4">
-                            <div className="flex items-center justify-between gap-4">
-                                <button onClick={() => setShowFilters(!showFilters)} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 text-white font-bold hover:bg-purple-700 transition">
-                                    <Icon name="filter" size={18} /> Filters
-                                </button>
-                                <select
-                                    value={sortBy}
-                                    onChange={(e) => setSortBy(e.target.value)}
-                                    className={`text-sm font-bold py-2 px-4 rounded-xl border outline-none focus:ring-2 focus:ring-purple-500 ${darkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                                >
-                                    <option value="newest">Newest First</option>
-                                    <option value="price-low">Price: Low to High</option>
-                                    <option value="price-high">Price: High to Low</option>
-                                    <option value="name-az">Name: A-Z</option>
-                                    <option value="rating">Highest Rated</option>
-                                    <option value="trending">Trending</option>
-                                </select>
-                                <div className="text-sm font-bold text-gray-500">
-                                    {filteredProducts.length} products
-                                </div>
-                            </div>
-
-                            {showFilters && (
-                                <div className={`mt-4 p-4 rounded-lg ${darkMode ? 'bg-gray-900' : 'bg-gray-100'} space-y-4`}>
-                                    {/* Price Range */}
-                                    <div>
-                                        <label className="text-sm font-bold mb-2 block">Price Range: GH₵{priceRange[0]} - GH₵{priceRange[1]}</label>
-                                        <div className="flex gap-4">
-                                            <input type="range" min="0" max="10000" value={priceRange[0]} onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])} className="price-range-slider flex-1" />
-                                            <input type="range" min="0" max="10000" value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])} className="price-range-slider flex-1" />
-                                        </div>
-                                    </div>
-
-                                    {/* Rating Filter */}
-                                    <div>
-                                        <label className="text-sm font-bold mb-2 block">Minimum Rating</label>
-                                        <div className="flex gap-2">
-                                            {[0, 3, 4, 5].map(rating => (
-                                                <button key={rating} onClick={() => setSelectedRating(rating)} className={`px-4 py-2 rounded-lg font-bold transition ${selectedRating === rating ? 'bg-purple-600 text-white' : (darkMode ? 'bg-gray-800' : 'bg-gray-200')}`}>
-                                                    {rating === 0 ? 'All' : `${rating}⭐`}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Stock Filter */}
-                                    <div>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input type="checkbox" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} className="w-4 h-4" />
-                                            <span className="text-sm font-bold">In Stock Only</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
 
                     <AnimatePresence>
                         {isCartOpen && (
@@ -1096,7 +916,7 @@
                                     <div className="p-6 border-b flex justify-between items-center"><h2 className="text-xl font-bold">Your Cart</h2><button onClick={() => setIsCartOpen(false)}><Icon name="x" /></button></div>
                                     <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                                         {cart.length === 0 ? <div className="text-center py-20 opacity-50"><Icon name="cart" size={48} className="mx-auto mb-4" /><p>Your cart is empty</p></div> :
-                                            <div className="space-y-6">{cart.map(item => (<div key={item.id} className="flex gap-4"><img src={item.image} className="w-20 h-20 object-cover rounded-lg bg-gray-100" /><div className="flex-1"><h4 className="font-semibold text-sm">{item.title}</h4><p className="text-purple-600 font-bold">GH₵{item.price}</p><div className="flex items-center gap-3 mt-2"><button onClick={() => updateQty(item.id, -1)} className="p-1 border rounded"><Icon name="minus" size={14} /></button><span className="text-sm font-medium">{item.qty}</span><button onClick={() => updateQty(item.id, 1)} className="p-1 border rounded"><Icon name="plus" size={14} /></button><button onClick={() => removeFromCart(item.id)} className="ml-auto text-red-500"><Icon name="trash" size={16} /></button></div></div></div>))}</div>}
+                                        <div className="space-y-6">{cart.map(item => (<div key={item.id} className="flex gap-4"><img src={item.image} className="w-20 h-20 object-cover rounded-lg bg-gray-100" /><div className="flex-1"><h4 className="font-semibold text-sm">{item.title}</h4><p className="text-purple-600 font-bold">GH₵{item.price}</p><div className="flex items-center gap-3 mt-2"><button onClick={() => updateQty(item.id, -1)} className="p-1 border rounded"><Icon name="minus" size={14}/></button><span className="text-sm font-medium">{item.qty}</span><button onClick={() => updateQty(item.id, 1)} className="p-1 border rounded"><Icon name="plus" size={14}/></button><button onClick={() => removeFromCart(item.id)} className="ml-auto text-red-500"><Icon name="trash" size={16}/></button></div></div></div>))}</div>}
                                     </div>
                                     <div className="p-6 border-t space-y-4"><div className="flex justify-between text-xl font-bold"><span>Total</span><span>GH₵{cartTotal.toFixed(2)}</span></div><button onClick={handleCheckout} disabled={cart.length === 0} className="w-full bg-green-600 text-white py-4 rounded-xl font-bold hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2">Proceed to WhatsApp Checkout</button></div>
                                 </motion.div>
@@ -1119,7 +939,7 @@
                                     <div className="p-6 border-b flex justify-between items-center"><h2 className="text-xl font-bold">Your Wishlist</h2><button onClick={() => setIsWishlistOpen(false)}><Icon name="x" /></button></div>
                                     <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                                         {wishlist.length === 0 ? <div className="text-center py-20 opacity-50"><Icon name="heart" size={48} className="mx-auto mb-4" /><p>Your wishlist is empty</p></div> :
-                                            <div className="space-y-6">{wishlist.map(item => (<div key={item.id} className="flex gap-4"><img src={item.image} className="w-20 h-20 object-cover rounded-lg bg-gray-100" /><div className="flex-1"><h4 className="font-semibold text-sm">{item.title}</h4><p className="text-purple-600 font-bold">GH₵{item.price}</p><div className="flex items-center gap-3 mt-2"><button onClick={() => addToCart(item)} className="bg-purple-600 text-white px-3 py-1 rounded-lg text-xs font-bold">Add to Cart</button><button onClick={() => toggleWishlist(item)} className="ml-auto text-red-500"><Icon name="trash" size={16} /></button></div></div></div>))}</div>}
+                                        <div className="space-y-6">{wishlist.map(item => (<div key={item.id} className="flex gap-4"><img src={item.image} className="w-20 h-20 object-cover rounded-lg bg-gray-100" /><div className="flex-1"><h4 className="font-semibold text-sm">{item.title}</h4><p className="text-purple-600 font-bold">GH₵{item.price}</p><div className="flex items-center gap-3 mt-2"><button onClick={() => addToCart(item)} className="bg-purple-600 text-white px-3 py-1 rounded-lg text-xs font-bold">Add to Cart</button><button onClick={() => toggleWishlist(item)} className="ml-auto text-red-500"><Icon name="trash" size={16}/></button></div></div></div>))}</div>}
                                     </div>
                                 </motion.div>
                             </div>
@@ -1127,44 +947,48 @@
                     </AnimatePresence>
 
                     <AnimatePresence>
-                        {isOrderHistoryOpen && (
-                            <div className="fixed inset-0 z-[60] flex justify-end">
+                        {showCompare && (
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                                 <motion.div
                                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                    className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsOrderHistoryOpen(false)}
+                                    className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCompare(false)}
                                 />
                                 <motion.div
-                                    initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-                                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                                    className={`relative h-full w-full max-w-md ${darkMode ? 'bg-gray-900' : 'bg-white'} shadow-2xl flex flex-col`}
+                                    initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+                                    className={`relative w-full max-w-5xl rounded-3xl ${darkMode ? 'bg-gray-900 border border-gray-800' : 'bg-white'} shadow-2xl p-8 overflow-x-auto`}
                                 >
-                                    <div className="p-6 border-b flex justify-between items-center"><h2 className="text-xl font-bold">Your Orders</h2><button onClick={() => setIsOrderHistoryOpen(false)}><Icon name="x" /></button></div>
-                                    <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-                                        {orders.filter(o => o.userEmail === user.email).length === 0 ?
-                                            <div className="text-center py-20 opacity-50"><Icon name="cart" size={48} className="mx-auto mb-4" /><p>No orders found.</p></div> :
-                                            <div className="space-y-6">
-                                                {orders.filter(o => o.userEmail === user.email).reverse().map(order => (
-                                                    <div key={order.id} className={`p-4 rounded-2xl border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
-                                                        <div className="flex justify-between items-start mb-2">
-                                                            <div>
-                                                                <div className="text-[10px] font-bold text-purple-500 uppercase">Order #{order.id.slice(-6)}</div>
-                                                                <div className="text-[10px] text-gray-500">{new Date(order.timestamp).toLocaleDateString()}</div>
-                                                            </div>
-                                                            <div className="text-sm font-bold text-purple-600">GH₵{order.total.toFixed(2)}</div>
+                                    <div className="flex justify-between items-center mb-8">
+                                        <h2 className="text-2xl font-black">Product Comparison</h2>
+                                        <button onClick={() => setShowCompare(false)} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"><Icon name="x" /></button>
+                                    </div>
+
+                                    {compareList.length === 0 ? (
+                                        <div className="text-center py-20 opacity-50">
+                                            <Icon name="layout" size={48} className="mx-auto mb-4" />
+                                            <p>No products to compare. Add some from the store!</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 min-w-[600px]">
+                                            {compareList.map(p => (
+                                                <div key={p.id} className="text-center relative">
+                                                    <button onClick={() => setCompareList(compareList.filter(i => i.id !== p.id))} className="absolute top-0 right-0 text-red-500 hover:bg-red-50 rounded-full p-1"><Icon name="trash" size={14} /></button>
+                                                    <img src={p.image} className="w-full h-40 object-cover rounded-xl mb-4 shadow-lg" />
+                                                    <h3 className="font-bold text-lg mb-2 truncate dark:text-white">{p.title}</h3>
+                                                    <div className="space-y-4">
+                                                        <div className="h-10 border-b dark:border-gray-800 flex items-center justify-center text-purple-600 font-bold">GH₵{p.price}</div>
+                                                        <div className="h-10 border-b dark:border-gray-800 flex items-center justify-center text-yellow-500">
+                                                            {[...Array(p.rating)].map((_, i) => <Icon key={i} name="star" size={14} />)}
                                                         </div>
-                                                        <div className="space-y-1">
-                                                            {order.items.map((item, idx) => (
-                                                                <div key={idx} className="text-xs flex justify-between">
-                                                                    <span>{item.title} x{item.qty}</span>
-                                                                    <span className="text-gray-500">GH₵{(item.price * item.qty).toFixed(2)}</span>
-                                                                </div>
-                                                            ))}
+                                                        <div className="h-10 border-b dark:border-gray-800 flex items-center justify-center uppercase text-xs font-bold tracking-widest text-gray-900 dark:text-white">{p.category}</div>
+                                                        <div className="h-10 border-b dark:border-gray-800 flex items-center justify-center text-sm text-gray-900 dark:text-white">{p.stock > 0 ? 'In Stock' : 'Out of Stock'}</div>
+                                                        <div className="h-10 flex items-center justify-center pt-2">
+                                                            <button onClick={() => { addToCart(p); setShowCompare(false); }} className="bg-black text-white px-6 py-2 rounded-full text-xs font-bold hover:scale-105 transition">Add to Cart</button>
                                                         </div>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        }
-                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </motion.div>
                             </div>
                         )}
@@ -1189,14 +1013,6 @@
                                         <div className="flex flex-col">
                                             <span className="text-purple-600 font-bold uppercase tracking-widest text-xs mb-2">{selectedProduct.category}</span>
                                             <h2 className="text-3xl font-black mb-4">{selectedProduct.title}</h2>
-                                            <div className="flex items-center gap-2 mb-4">
-                                                <div className="flex gap-1">
-                                                    {[...Array(5)].map((_, i) => (
-                                                        <Icon key={i} name="star" size={16} className={i < selectedProduct.rating ? 'text-yellow-500' : 'text-gray-400'} />
-                                                    ))}
-                                                </div>
-                                                <span className="text-sm text-gray-500">({selectedProduct.rating}/5)</span>
-                                            </div>
                                             <p className="text-gray-500 mb-6 leading-relaxed">{selectedProduct.description}</p>
                                             <div className="mb-6">
                                                 <div className="flex justify-between items-center mb-2">
@@ -1211,56 +1027,54 @@
                                                     ))}
                                                 </div>
                                             </div>
-
-                                            {/* Reviews Section */}
-                                            <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800">
-                                                <h4 className="font-bold text-sm uppercase text-gray-400 mb-4">Customer Reviews</h4>
-
-                                                <div className="space-y-4 mb-6">
-                                                    {(selectedProduct.reviews || []).length === 0 ?
-                                                        <p className="text-xs text-gray-500 italic">No reviews yet. Be the first!</p> :
-                                                        (selectedProduct.reviews || []).map(rev => (
-                                                            <div key={rev.id} className="text-sm">
-                                                                <div className="flex justify-between items-center mb-1">
-                                                                    <span className="font-bold">{rev.userName}</span>
-                                                                    <span className="text-yellow-500">{'⭐'.repeat(rev.rating)}</span>
-                                                                </div>
-                                                                <p className="text-gray-500 text-xs">{rev.comment}</p>
-                                                            </div>
-                                                        ))
-                                                    }
-                                                </div>
-
-                                                <form onSubmit={(e) => handleReviewSubmit(e, selectedProduct.id)} className="space-y-3">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs font-bold text-gray-400">Rating:</span>
-                                                        <select
-                                                            value={reviewForm.rating}
-                                                            onChange={e => setReviewForm({...reviewForm, rating: parseInt(e.target.value)})}
-                                                            className={`text-xs p-1 rounded border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
-                                                        >
-                                                            {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} Stars</option>)}
-                                                        </select>
-                                                    </div>
-                                                    <textarea
-                                                        placeholder="Write your review..."
-                                                        required
-                                                        value={reviewForm.comment}
-                                                        onChange={e => setReviewForm({...reviewForm, comment: e.target.value})}
-                                                        className={`w-full p-3 rounded-xl border text-xs outline-none focus:ring-1 focus:ring-purple-500 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-transparent'}`}
-                                                        rows="2"
-                                                    />
-                                                    <button type="submit" className="bg-purple-600/10 text-purple-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-purple-600 hover:text-white transition w-full">Submit Review</button>
-                                                </form>
-                                            </div>
-                                            <div className="mt-auto pt-6 flex items-center justify-between border-t border-gray-100 dark:border-gray-800 gap-4">
+                                            <div className="mt-auto pt-6 flex items-center justify-between border-t border-gray-100 dark:border-gray-800">
                                                 <span className="text-3xl font-black text-purple-600">GH₵{selectedProduct.price}</span>
                                                 <div className="flex gap-2">
-                                                    <button onClick={() => handleShare(selectedProduct)} className={`p-3 rounded-2xl border ${darkMode ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-100'} transition`} title="Share">
-                                                        <Icon name="share" size={20} />
-                                                    </button>
-                                                    <button onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }} className="bg-purple-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-500/30">Add to Cart</button>
+                                                    <button onClick={() => handleShare(selectedProduct)} className="p-3 border rounded-2xl hover:bg-gray-100 transition" title="Share"><Icon name="share" /></button>
+                                                    <button onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }} className="flex-1 bg-purple-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-500/30">Add to Cart</button>
                                                 </div>
+                                            </div>
+
+                                            {/* Reviews Section */}
+                                            <div className="mt-12 pt-8 border-t dark:border-gray-800">
+                                                <h3 className="text-xl font-bold mb-6">Customer Reviews</h3>
+                                                <div className="space-y-4 mb-8">
+                                                    {(reviews[selectedProduct.id] || []).map(r => (
+                                                        <div key={r.id} className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl">
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <span className="font-bold">{r.userName}</span>
+                                                                <span className="text-xs text-gray-500">{r.date}</span>
+                                                            </div>
+                                                            <div className="flex gap-1 text-yellow-500 mb-2">
+                                                                {[...Array(r.rating)].map((_, i) => <Icon key={i} name="star" size={12} />)}
+                                                            </div>
+                                                            <p className="text-sm">{r.comment}</p>
+                                                        </div>
+                                                    ))}
+                                                    {!(reviews[selectedProduct.id]?.length) && <p className="text-gray-500 italic">No reviews yet. Be the first!</p>}
+                                                </div>
+                                                {user && (
+                                                    <div className="space-y-4 bg-gray-50 dark:bg-gray-800 p-6 rounded-2xl">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            {[1,2,3,4,5].map(s => (
+                                                                <button key={s} onClick={() => setReviewRating(s)} className={`text-2xl ${s <= reviewRating ? 'text-yellow-500' : 'text-gray-300'}`}>★</button>
+                                                            ))}
+                                                        </div>
+                                                        <textarea
+                                                            value={reviewInput}
+                                                            onChange={(e) => setReviewInput(e.target.value)}
+                                                            placeholder="Share your experience with this product..."
+                                                            className="w-full p-4 rounded-xl border dark:border-gray-700 dark:bg-gray-900 outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                                                            rows="3"
+                                                        />
+                                                        <button
+                                                            onClick={handleAddReview}
+                                                            className="w-full bg-gray-900 dark:bg-purple-600 text-white py-3 rounded-xl font-bold hover:opacity-90 transition"
+                                                        >
+                                                            Submit Review
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -1272,11 +1086,24 @@
                     <main className="max-w-7xl mx-auto px-4 py-8">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                             <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 custom-scrollbar scroll-smooth">
-                                {['all', 'flyer', 'poster', 'tshirt', 'frame', 'photoshoot', 'handbag', 'pendant'].map(cat => (
+                                {['all', 'flyer', 'poster', 'tshirt', 'frame', 'photoshop', 'handbags'].map(cat => (
                                     <button key={cat} onClick={() => setCategory(cat)} className={`px-6 py-2 rounded-full capitalize whitespace-nowrap transition-all ${category === cat ? 'bg-purple-600 text-white shadow-lg' : (darkMode ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-600 border')}`}>
                                         {cat}
                                     </button>
                                 ))}
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-xs font-bold text-gray-500 uppercase">Sort By:</span>
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value)}
+                                    className={`text-sm font-bold py-2 px-4 rounded-xl border outline-none focus:ring-2 focus:ring-purple-500 ${darkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                >
+                                    <option value="newest">Newest First</option>
+                                    <option value="price-low">Price: Low to High</option>
+                                    <option value="price-high">Price: High to Low</option>
+                                    <option value="name-az">Name: A-Z</option>
+                                </select>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -1292,18 +1119,15 @@
                                 >
                                     <div className="relative overflow-hidden aspect-[4/5]">
                                         <img src={product.image} alt={product.title} onClick={() => setSelectedProduct(product)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 cursor-pointer" />
-                                        <div className="absolute top-3 right-3 flex flex-col gap-2 z-[50]">
-                                            <button onClick={() => toggleWishlist(product)} className={`p-2 rounded-full shadow-md transition hover:scale-110 ${wishlist.find(i => i.id === product.id) ? 'bg-red-500 text-white' : 'bg-white text-gray-900 hover:bg-gray-100'}`}>
-                                                <Icon name={wishlist.find(i => i.id === product.id) ? 'heartFilled' : 'heart'} size={18} />
+                                        <div className="absolute top-3 right-3 flex flex-col gap-2">
+                                            <button onClick={() => toggleWishlist(product)} className="p-2 bg-white/90 backdrop-blur rounded-full text-red-500 shadow-sm hover:scale-110 transition">
+                                                <Icon name={wishlist.find(item => item.id === product.id) ? 'heartFilled' : 'heart'} size={18} />
                                             </button>
                                             <button onClick={() => { setArProduct(product); setArActive(true); }} className="p-2 rounded-full bg-white text-gray-900 shadow-md hover:bg-gray-100 hover:scale-110 transition" title="View in AR">
-                                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="w-[18px] h-[18px]"><path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+                                                <Icon name="camera" size={18} />
                                             </button>
-                                            <button onClick={() => toggleCompare(product)} className={`p-2 rounded-full shadow-md transition hover:scale-110 ${compareList.find(i => i.id === product.id) ? 'bg-blue-500 text-white' : 'bg-white text-gray-900 hover:bg-gray-100'}`} title="Compare">
+                                            <button onClick={() => toggleCompare(product)} className={`p-2 bg-white/90 backdrop-blur rounded-full shadow-sm hover:scale-110 transition ${compareList.find(item => item.id === product.id) ? 'text-blue-500' : 'text-gray-400'}`}>
                                                 <Icon name="layout" size={18} />
-                                            </button>
-                                            <button onClick={() => handleShare(product)} className="p-2 rounded-full bg-white text-gray-900 shadow-md hover:bg-gray-100 hover:scale-110 transition" title="Share">
-                                                <Icon name="share" size={18} />
                                             </button>
                                         </div>
                                         <div className="absolute top-3 left-3">
@@ -1311,20 +1135,12 @@
                                         </div>
                                         {product.stock < 5 && (
                                             <div className="absolute bottom-3 left-3">
-                                                <span className="bg-red-500 text-white px-2 py-1 rounded text-[10px] font-bold product-badge">Low Stock</span>
+                                                <span className="bg-red-500 text-white px-2 py-1 rounded text-[10px] font-bold animate-pulse">Low Stock</span>
                                             </div>
                                         )}
                                     </div>
                                     <div className="p-5">
                                         <h3 className="font-bold text-lg mb-1 truncate">{product.title}</h3>
-                                        <div className="flex items-center gap-1 mb-2">
-                                            <div className="flex gap-0.5">
-                                                {[...Array(5)].map((_, i) => (
-                                                    <Icon key={i} name="star" size={12} className={i < product.rating ? 'text-yellow-500' : 'text-gray-400'} />
-                                                ))}
-                                            </div>
-                                            <span className="text-[10px] text-gray-500">({product.rating})</span>
-                                        </div>
                                         <p className="text-sm text-gray-500 mb-4 line-clamp-2 h-10">{product.description}</p>
                                         <div className="flex items-center justify-between">
                                             <span className="text-xl font-black text-purple-600">GH₵{product.price}</span>
@@ -1338,63 +1154,22 @@
                         </div>
                     </main>
 
-                    {/* Advertisement Section */}
-                    <motion.section
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8 }}
-                        viewport={{ once: true }}
-                        className="max-w-7xl mx-auto px-4 py-10"
-                    >
-                        <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-purple-600 to-pink-500 shadow-2xl group">
-                            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
-                            <div className="absolute -right-20 -top-20 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl"></div>
-                            <div className="absolute -left-20 -bottom-20 w-96 h-96 bg-pink-500/30 rounded-full blur-3xl"></div>
-
-                            <div className="relative z-10 p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-10">
-                                <div className="text-center md:text-left">
-                                    <div className="inline-block bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white mb-6 animate-pulse">
-                                        Limited Time Offer
+                    {recentlyViewed.length > 0 && (
+                        <section className="max-w-7xl mx-auto px-4 py-12">
+                            <h2 className="text-xl font-bold mb-6">Recently Viewed</h2>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {recentlyViewed.map(p => (
+                                    <div key={p.id} onClick={() => setSelectedProduct(p)} className="cursor-pointer group">
+                                        <img src={p.image} className="w-full aspect-square object-cover rounded-xl mb-2 group-hover:opacity-80 transition" />
+                                        <h4 className="text-sm font-bold truncate">{p.title}</h4>
+                                        <p className="text-xs text-purple-600 font-bold">GH₵{p.price}</p>
                                     </div>
-                                    <h2 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight drop-shadow-sm">
-                                        Summer Sale <br />
-                                        <span className="text-yellow-300">
-                                            Get 30% Off
-                                        </span>
-                                    </h2>
-                                    <p className="text-lg text-purple-100 max-w-xl mb-8 font-medium">
-                                        Elevate your brand identity with our premium flyers and designs. Don't miss out on these exclusive deals!
-                                    </p>
-                                    <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                                        <button onClick={() => { setCategory('all'); window.scrollTo({ top: 300, behavior: 'smooth' }); }} className="bg-white text-purple-600 px-8 py-4 rounded-2xl font-black text-lg hover:shadow-2xl hover:scale-105 transition transform flex items-center justify-center gap-2 group-hover:gap-3">
-                                            Shop Now <Icon name="cart" size={20} />
-                                        </button>
-                                        <button onClick={() => { window.scrollTo({ top: 800, behavior: 'smooth' }); showToast("Discount applied! Check our flyer collection."); }} className="px-8 py-4 rounded-2xl font-bold text-white border-2 border-white/20 hover:bg-white/10 transition backdrop-blur-sm">
-                                            View Details
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="relative w-full md:w-1/3 aspect-square flex items-center justify-center hidden md:flex">
-                                    <div className="relative z-10 bg-white/10 backdrop-blur-md p-6 rounded-3xl border border-white/20 rotate-3 hover:rotate-0 transition duration-500">
-                                        <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-4 rounded-2xl w-48 h-64 flex flex-col items-center justify-center text-white shadow-2xl">
-                                            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Flyer Design</div>
-                                            <div className="text-4xl font-black text-purple-500 mb-2">30%</div>
-                                            <div className="text-sm font-bold">OFF</div>
-                                        </div>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
-                        </div>
-                    </motion.section>
+                        </section>
+                    )}
 
-                    <motion.section
-                        initial={{ opacity: 0, y: 50 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                        viewport={{ once: true }}
-                        className="max-w-7xl mx-auto px-4 py-20 border-t border-gray-100 dark:border-gray-800"
-                    >
+                    <section className="max-w-7xl mx-auto px-4 py-20 border-t border-gray-100 dark:border-gray-800">
                         <div className="text-center mb-16">
                             <h2 className="text-3xl font-black mb-4">What Our Clients Say</h2>
                             <p className="text-gray-500">Trusted by hundreds of businesses across Ghana.</p>
@@ -1407,7 +1182,7 @@
                             ].map((t, i) => (
                                 <div key={i} className={`p-8 rounded-3xl ${darkMode ? 'bg-gray-800' : 'bg-white shadow-sm border border-gray-100'}`}>
                                     <div className="flex gap-1 mb-4 text-yellow-500">
-                                        {[...Array(5)].map((_, j) => <Icon key={j} name="star" size={16} className="fill-current" />)}
+                                        {[...Array(5)].map((_, j) => <Icon key={j} name="sun" size={16} className="fill-current" />)}
                                     </div>
                                     <p className="italic mb-6 text-sm">"{t.text}"</p>
                                     <div className="font-bold">{t.name}</div>
@@ -1415,15 +1190,9 @@
                                 </div>
                             ))}
                         </div>
-                    </motion.section>
+                    </section>
 
-                    <motion.section
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        transition={{ duration: 1 }}
-                        viewport={{ once: true }}
-                        className={`py-20 ${darkMode ? 'bg-purple-900/10' : 'bg-purple-50'}`}
-                    >
+                    <section className={`py-20 ${darkMode ? 'bg-purple-900/10' : 'bg-purple-50'}`}>
                         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                             <div>
                                 <h2 className="text-4xl font-black mb-6">Let's Create Something Amazing</h2>
@@ -1448,235 +1217,162 @@
                             <div className={`p-8 rounded-[2.5rem] ${darkMode ? 'bg-gray-800' : 'bg-white shadow-xl'}`}>
                                 <form className="space-y-4" onSubmit={handleContactSubmit}>
                                     <input type="text" required placeholder="Your Name" className={`w-full p-4 rounded-2xl border outline-none focus:ring-2 focus:ring-purple-500 ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-transparent'}`}
-                                        value={contactForm.name} onChange={e => setContactForm({ ...contactForm, name: e.target.value })} />
+                                        value={contactForm.name} onChange={e => setContactForm({...contactForm, name: e.target.value})} />
                                     <input type="email" required placeholder="Your Email" className={`w-full p-4 rounded-2xl border outline-none focus:ring-2 focus:ring-purple-500 ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-transparent'}`}
-                                        value={contactForm.email} onChange={e => setContactForm({ ...contactForm, email: e.target.value })} />
+                                        value={contactForm.email} onChange={e => setContactForm({...contactForm, email: e.target.value})} />
                                     <textarea required placeholder="Tell us about your project..." rows="4" className={`w-full p-4 rounded-2xl border outline-none focus:ring-2 focus:ring-purple-500 ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-transparent'}`}
-                                        value={contactForm.message} onChange={e => setContactForm({ ...contactForm, message: e.target.value })} />
+                                        value={contactForm.message} onChange={e => setContactForm({...contactForm, message: e.target.value})} />
                                     <button type="submit" className="w-full bg-purple-600 text-white py-4 rounded-2xl font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-500/30">Send Message</button>
                                 </form>
                             </div>
                         </div>
-                    </motion.section>
-
-                    {/* Newsletter Section */}
-                    <motion.section
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                        viewport={{ once: true }}
-                        className="py-20 px-4"
-                    >
-                        <div className="max-w-4xl mx-auto relative rounded-[3rem] overflow-hidden p-10 md:p-16 text-center">
-                            <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-black"></div>
-                            <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
-
-                            <div className="relative z-10">
-                                <span className="inline-block py-1 px-3 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold uppercase tracking-widest mb-4 border border-purple-500/30">
-                                    Stay Updated
-                                </span>
-                                <h2 className="text-3xl md:text-5xl font-black text-white mb-6">Join Our Creative Community</h2>
-                                <p className="text-purple-200 mb-8 max-w-2xl mx-auto">Get exclusive deals, design tips, and early access to new collections delivered to your inbox.</p>
-                                <form onSubmit={(e) => { e.preventDefault(); showToast("Subscribed successfully!"); }} className="max-w-md mx-auto flex flex-col md:flex-row gap-4">
-                                    <input
-                                        type="email"
-                                        placeholder="Enter your email address"
-                                        className="flex-1 px-6 py-4 rounded-2xl bg-white/10 border border-white/10 text-white placeholder-purple-300/50 backdrop-blur-sm outline-none focus:ring-2 focus:ring-purple-500 transition"
-                                        required
-                                    />
-                                    <button className="px-8 py-4 bg-white text-purple-900 rounded-2xl font-bold hover:bg-purple-100 transition shadow-lg shadow-purple-900/50">
-                                        Subscribe
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </motion.section>
-
-                    {/* Scroll to Top Button */}
-                    <AnimatePresence>
-                        {showScroll && (
-                            <motion.button
-                                initial={{ opacity: 0, scale: 0.5 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.5 }}
-                                whileHover={{ y: -5 }}
-                                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                                className="fixed bottom-8 left-8 z-40 bg-purple-600 text-white p-4 rounded-full shadow-2xl shadow-purple-600/40 hover:bg-purple-700 transition"
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
-                            </motion.button>
-                        )}
-                    </AnimatePresence>
-
-                    {/* Recently Viewed Products */}
-                    {recentlyViewed.length > 0 && (
-                        <section className="max-w-7xl mx-auto px-4 py-12 border-t border-gray-100 dark:border-gray-800">
-                            <h2 className="text-2xl font-black mb-8">Recently Viewed</h2>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                {recentlyViewed.map(product => (
-                                    <motion.div
-                                        key={product.id}
-                                        whileHover={{ y: -5 }}
-                                        onClick={() => setSelectedProduct(product)}
-                                        className="cursor-pointer group"
-                                    >
-                                        <div className="aspect-[4/5] rounded-xl overflow-hidden mb-3">
-                                            <img src={product.image} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-                                        </div>
-                                        <h3 className="font-bold text-sm truncate">{product.title}</h3>
-                                        <p className="text-purple-600 font-bold text-xs">GH₵{product.price}</p>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </section>
-                    )}
+                    </section>
 
                     <footer className={`mt-20 py-10 border-t ${darkMode ? 'border-gray-800 bg-gray-950' : 'border-gray-200 bg-white'}`}>
                         <div className="max-w-7xl mx-auto px-4 text-center">
                             <h2 className="text-xl font-bold mb-4">CreativeHub.</h2>
-                            <p className="text-gray-500 text-sm">Elevating your brand with premium designs and advanced e-commerce solutions.</p>
-
+                            <p className="text-gray-500 text-sm">Elevating your brand with premium designs.</p>
+                            <div className="mt-4 flex justify-center gap-6 text-xs font-bold text-gray-400">
+                                <a href="#" className="hover:text-purple-500">Home</a>
+                                <button onClick={() => alert('CreativeHub Privacy Policy: We value your data. All information is kept secure and used only for order processing.')} className="hover:text-purple-500">Privacy</button>
+                                <button onClick={() => alert('About CreativeHub: Established in Accra, we provide high-end design, branding, and photography services to help your business shine.')} className="hover:text-purple-500">About Us</button>
+                            </div>
                             <p className="mt-8 text-[10px] text-gray-500 uppercase tracking-widest">&copy; 2026 CreativeHub All Rights Reserved.</p>
                         </div>
                     </footer>
-                    {/* --- AI ASSISTANT WIDGET --- */}
+
+                    {/* --- ORDER HISTORY MODAL --- */}
                     <AnimatePresence>
-                        {showChat && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 20 }}
-                                className="fixed bottom-24 left-4 right-4 md:left-auto md:right-6 md:w-80 h-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700 z-[60]"
-                            >
-                                <div className="bg-purple-600 p-4 flex justify-between items-center text-white">
-                                    <div className="font-bold flex items-center gap-2"><div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div> AI Assistant</div>
-                                    <button onClick={() => setShowChat(false)}><Icon name="x" size={18} /></button>
-                                </div>
-                                <div className="flex-1 p-4 overflow-y-auto space-y-3 custom-scrollbar">
-                                    {chatMessages.map((msg, i) => (
-                                        <div key={i} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                            <div className={`max-w-[80%] p-3 rounded-xl text-sm ${msg.sender === 'user' ? 'bg-purple-100 text-purple-900 rounded-tr-none' : 'bg-gray-100 dark:bg-gray-700 dark:text-gray-200 rounded-tl-none'}`}>
-                                                {msg.text}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                <form onSubmit={handleChatSubmit} className="p-3 border-t border-gray-100 dark:border-gray-700 flex gap-2">
-                                    <input value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Type a message..." className="flex-1 bg-gray-100 dark:bg-gray-900 rounded-lg px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-purple-500 dark:text-white" />
-                                    <button type="submit" className="p-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"><Icon name="trending" size={16} /></button>
-                                </form>
-                            </motion.div>
-                        )
-                        }
-                    </AnimatePresence >
-                    <button onClick={() => setShowChat(!showChat)} className="fixed bottom-6 right-6 w-14 h-14 bg-purple-600 text-white rounded-full shadow-xl flex items-center justify-center hover:scale-110 transition z-50">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
-                    </button>
-
-                    {/* --- AR PREVIEW MODAL --- */}
-                    {
-                        arActive && arProduct && (
-                            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-                                <div className={`${darkMode ? 'bg-gray-900' : 'bg-white'} rounded-3xl max-w-2xl w-full overflow-hidden shadow-2xl relative`}>
-                                    <button onClick={() => setArActive(false)} className="absolute top-4 right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70"><Icon name="x" /></button>
-                                    <div className={`aspect-video relative flex items-center justify-center overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                                        {isCameraActive ? (
-                                            <>
-                                                <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover" />
-                                                {/* Scanning Grid Overlay */}
-                                                <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,0,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,0,0.1)_1px,transparent_1px)] bg-[size:30px_30px] opacity-30 animate-pulse pointer-events-none"></div>
-                                                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md px-4 py-1.5 rounded-full text-green-400 text-xs font-bold font-mono border border-green-500/30 flex items-center gap-2">
-                                                    <span className="w-2 h-2 rounded-full bg-green-500 animate-ping"></span> AI SCANNING SURFACE
-                                                </div>
-
-                                                {/* Switch Camera Button */}
-                                                <button
-                                                    onClick={() => setFacingMode(prev => prev === 'user' ? 'environment' : 'user')}
-                                                    className="absolute bottom-4 right-4 bg-white/20 backdrop-blur-md p-3 rounded-full hover:bg-white/30 transition border border-white/30 text-white shadow-lg transform active:scale-95"
-                                                    title="Switch Camera"
-                                                >
-                                                    <Icon name="refresh" size={20} />
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=2787&auto=format&fit=crop')] bg-cover bg-center opacity-50"></div>
-                                        )}
-                                        <img src={arProduct.image} className="absolute w-1/3 drop-shadow-2xl animate-spin-slow" style={{ animationDuration: '10s' }} />
-                                        {!isCameraActive && <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm font-bold backdrop-blur-sm animate-pulse">Scanning Surface...</div>}
-                                    </div>
-                                    <div className="p-6 text-center">
-                                        <h3 className={`text-xl font-black mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>AR Preview: {arProduct.title}</h3>
-                                        <p className={`text-sm mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>Point your camera at a flat surface to view this item in your space.</p>
-                                        {!isCameraActive && (
-                                            <button onClick={() => setIsCameraActive(true)} className="bg-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-purple-700 transition w-full">
-                                                Activate Camera
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )
-                    }
-
-                    {/* --- COMPARISON BAR --- */}
-                    {
-                        compareList.length > 0 && !showCompare && (
-                            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-800 border border-purple-500 shadow-2xl p-4 rounded-2xl flex items-center gap-4 z-40 animate-fade-in-up">
-                                <div className="flex -space-x-2">
-                                    {compareList.map(p => <img key={p.id} src={p.image} className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 object-cover" />)}
-                                </div>
-                                <div className="text-sm font-bold text-gray-900 dark:text-white">{compareList.length} items selected</div>
-                                <button onClick={() => setShowCompare(true)} className="bg-purple-600 text-white px-4 py-2 rounded-lg text-xs font-bold">Compare Now</button>
-                                <button onClick={() => setCompareList([])} className="text-gray-400 hover:text-red-500"><Icon name="x" size={16} /></button>
-                            </div>
-                        )
-                    }
-
-                    {/* --- COMPARISON MODAL --- */}
-                    {
-                        showCompare && (
-                            <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-                                <div className="bg-white dark:bg-gray-900 w-full max-w-5xl rounded-3xl p-8 shadow-2xl overflow-hidden relative max-h-[90vh] overflow-y-auto">
+                        {isOrderHistoryOpen && (
+                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsOrderHistoryOpen(false)} />
+                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className={`relative w-full max-w-2xl rounded-3xl ${darkMode ? 'bg-gray-900 border border-gray-800' : 'bg-white'} shadow-2xl p-8 max-h-[80vh] overflow-y-auto`}>
                                     <div className="flex justify-between items-center mb-8">
-                                        <h2 className="text-3xl font-black dark:text-white">Compare Products</h2>
-                                        <button onClick={() => setShowCompare(false)} className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full dark:text-white"><Icon name="x" /></button>
+                                        <h2 className="text-3xl font-black">My Orders</h2>
+                                        <button onClick={() => setIsOrderHistoryOpen(false)} className="p-2 hover:bg-gray-100 rounded-full dark:text-white"><Icon name="x" /></button>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                        <div className="space-y-4 pt-40 hidden md:block">
-                                            <div className="font-bold text-gray-400 h-10 border-b dark:border-gray-800">Price</div>
-                                            <div className="font-bold text-gray-400 h-10 border-b dark:border-gray-800">Rating</div>
-                                            <div className="font-bold text-gray-400 h-10 border-b dark:border-gray-800">Category</div>
-                                            <div className="font-bold text-gray-400 h-10 border-b dark:border-gray-800">Stock</div>
-                                            <div className="font-bold text-gray-400 h-10 border-b dark:border-gray-800">Action</div>
-                                        </div>
-                                        {compareList.map(p => (
-                                            <div key={p.id} className="text-center relative">
-                                                <button onClick={() => setCompareList(compareList.filter(i => i.id !== p.id))} className="absolute top-0 right-0 text-red-500 hover:bg-red-50 rounded-full p-1"><Icon name="trash" size={14} /></button>
-                                                <img src={p.image} className="w-full h-40 object-cover rounded-xl mb-4 shadow-lg" />
-                                                <h3 className="font-bold text-lg mb-2 truncate dark:text-white">{p.title}</h3>
-                                                <div className="space-y-4">
-                                                    <div className="h-10 border-b dark:border-gray-800 flex items-center justify-center text-purple-600 font-bold">GH₵{p.price}</div>
-                                                    <div className="h-10 border-b dark:border-gray-800 flex items-center justify-center text-yellow-500">{'⭐'.repeat(p.rating)}</div>
-                                                    <div className="h-10 border-b dark:border-gray-800 flex items-center justify-center uppercase text-xs font-bold tracking-widest text-gray-900 dark:text-white">{p.category}</div>
-                                                    <div className="h-10 border-b dark:border-gray-800 flex items-center justify-center text-sm text-gray-900 dark:text-white">{p.stock > 0 ? 'In Stock' : 'Out of Stock'}</div>
-                                                    <div className="h-10 flex items-center justify-center pt-2">
-                                                        <button onClick={() => { addToCart(p); setShowCompare(false); }} className="bg-black text-white px-6 py-2 rounded-full text-xs font-bold hover:scale-105 transition">Add to Cart</button>
+                                    <div className="space-y-6">
+                                        {userOrders.length === 0 ? <p className="text-center py-10 opacity-50 italic">You haven't placed any orders yet.</p> :
+                                            userOrders.map(o => (
+                                                <div key={o.id} className="p-6 border dark:border-gray-800 rounded-2xl">
+                                                    <div className="flex justify-between items-center mb-4">
+                                                        <span className="font-bold text-xs uppercase tracking-widest text-purple-600">Order #{o.id.toString().slice(-6)}</span>
+                                                        <span className="text-xs text-gray-500">{new Date(o.timestamp).toLocaleDateString()}</span>
+                                                    </div>
+                                                    <div className="space-y-2 mb-4">
+                                                        {o.items.map((item, i) => (
+                                                            <div key={i} className="flex justify-between text-sm">
+                                                                <span className="dark:text-gray-300">{item.title} x{item.qty}</span>
+                                                                <span className="font-bold">GH₵{(item.price * item.qty).toFixed(2)}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <div className="border-t dark:border-gray-800 pt-4 flex justify-between items-center">
+                                                        <span className="font-bold">Total Amount</span>
+                                                        <span className="text-xl font-black text-purple-600">GH₵{o.total.toFixed(2)}</span>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))
+                                        }
                                     </div>
+                                </motion.div>
+                            </div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* --- AR PREVIEW OVERLAY --- */}
+                    {arActive && arProduct && (
+                        <div className="fixed inset-0 z-[120] bg-black flex flex-col">
+                            <div className="relative flex-1 flex items-center justify-center p-12 overflow-hidden">
+                                {isCameraActive ? (
+                                    <video ref={videoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover opacity-60"></video>
+                                ) : (
+                                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=2787')] bg-cover bg-center opacity-30"></div>
+                                )}
+                                <motion.div drag dragConstraints={{ left: -200, right: 200, top: -200, bottom: 200 }} className="relative z-10 w-full max-w-sm aspect-square bg-white p-2 shadow-2xl border-8 border-gray-800">
+                                    <img src={arProduct.image} className="w-full h-full object-cover" />
+                                </motion.div>
+                                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/60 text-white px-6 py-2 rounded-full text-xs font-bold backdrop-blur-md border border-white/20 animate-pulse">
+                                    {isCameraActive ? 'AR Mode Active - Drag Item' : 'Scanning Environment...'}
                                 </div>
                             </div>
-                        )
-                    }
-                </div >
+                            <div className="p-8 bg-gray-900 border-t border-white/10 flex flex-col gap-4">
+                                <div className="flex justify-between items-center text-white">
+                                    <div>
+                                        <h3 className="font-bold">{arProduct.title}</h3>
+                                        <p className="text-xs text-gray-400">GH₵{arProduct.price}</p>
+                                    </div>
+                                    <button onClick={() => setIsCameraActive(!isCameraActive)} className="bg-white/10 p-3 rounded-xl hover:bg-white/20 transition">
+                                        <Icon name="camera" size={20} />
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setArActive(false);
+                                        setArProduct(null);
+                                        setIsCameraActive(false);
+                                    }}
+                                    className="w-full py-4 bg-red-600 text-white rounded-2xl font-bold"
+                                >
+                                    Close AR Preview
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* --- SMART AI ASSISTANT --- */}
+                    <div className="fixed bottom-6 right-6 z-[90]">
+                        <AnimatePresence>
+                            {chatInput !== null && ( // Just to have a way to toggle it if I added a state, but for now it's always "visible" or collapsed
+                                <div className="relative">
+                                    {/* Chat window could be toggled by a button, but let's make it a nice floating assistant */}
+                                </div>
+                            )}
+                        </AnimatePresence>
+                        <button
+                            onClick={() => {
+                                const win = document.getElementById('ai-chat-win');
+                                win.classList.toggle('hidden');
+                            }}
+                            className="bg-purple-600 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition group relative"
+                            title="AI Assistant"
+                        >
+                            <Icon name="message" />
+                            <span className="absolute right-full mr-4 bg-black text-white px-3 py-1 rounded-lg text-xs font-bold opacity-0 group-hover:opacity-100 transition whitespace-nowrap">Need Help?</span>
+                        </button>
+
+                        <div id="ai-chat-win" className="hidden absolute bottom-20 right-0 w-80 md:w-96 bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border dark:border-gray-800 overflow-hidden flex flex-col animate-fade-in-up">
+                            <div className="bg-purple-600 p-4 text-white font-bold flex justify-between items-center">
+                                <span>AI Assistant</span>
+                                <button onClick={() => document.getElementById('ai-chat-win').classList.add('hidden')}><Icon name="x" size={16}/></button>
+                            </div>
+                            <div className="h-80 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-800/50 custom-scrollbar">
+                                {chatMessages.map((m, i) => (
+                                    <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                        <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${m.sender === 'user' ? 'bg-purple-600 text-white' : 'bg-white dark:bg-gray-700 shadow-sm dark:text-white'}`}>
+                                            {m.text}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <form onSubmit={handleChat} className="p-4 bg-white dark:bg-gray-900 border-t dark:border-gray-800 flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Type a message..."
+                                    className="flex-1 bg-gray-100 dark:bg-gray-800 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500 dark:text-white"
+                                    value={chatInput}
+                                    onChange={e => setChatInput(e.target.value)}
+                                />
+                                <button type="submit" className="bg-purple-600 text-white p-2 rounded-xl"><Icon name="plus" size={16}/></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             );
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<AdvancedEcommerce />);
+        root.render(<DesignPortfolio />);
     </script>
 </body>
-
 </html>
