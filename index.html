@@ -275,13 +275,14 @@
             const arContainerRef = useRef(null);
             const arContainerRect = useRef(null);
             const [isCameraActive, setIsCameraActive] = useState(false);
+            const [isStreamLive, setIsStreamLive] = useState(false);
             const [facingMode, setFacingMode] = useState('environment'); // Default to back camera
             const videoRef = useRef(null);
 
             useEffect(() => {
                 let finishTimer;
                 let detectedTimer;
-                if (isCameraActive) {
+                if (isStreamLive) {
                     setArScanning(true);
                     setArDetected(false);
                     setArPosition({ x: 0, y: 0 });
@@ -300,11 +301,12 @@
                     if (finishTimer) clearTimeout(finishTimer);
                     if (detectedTimer) clearTimeout(detectedTimer);
                 };
-            }, [isCameraActive]);
+            }, [isStreamLive]);
 
             useEffect(() => {
                 let stream = null;
                 if (isCameraActive) {
+                    setIsStreamLive(false);
                     if (videoRef.current && videoRef.current.srcObject) {
                         videoRef.current.srcObject.getTracks().forEach(track => track.stop());
                     }
@@ -313,6 +315,7 @@
                         .then(s => {
                             stream = s;
                             if (videoRef.current) videoRef.current.srcObject = stream;
+                            setIsStreamLive(true);
                         })
                         .catch(err => {
                             console.error("Camera error:", err);
@@ -321,12 +324,16 @@
                                 .then(s => {
                                     stream = s;
                                     if (videoRef.current) videoRef.current.srcObject = s;
+                                    setIsStreamLive(true);
                                 })
                                 .catch(e => {
                                     showToast("Unable to access camera. Please allow permissions.");
                                     setIsCameraActive(false);
+                                    setIsStreamLive(false);
                                 });
                         });
+                } else {
+                    setIsStreamLive(false);
                 }
                 return () => {
                     if (stream) stream.getTracks().forEach(track => track.stop());
@@ -1714,7 +1721,7 @@
                                                 <div className={`absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.1)_1px,transparent_1px)] bg-[size:30px_30px] ${arScanning ? 'opacity-30 animate-pulse' : 'opacity-10'} pointer-events-none transition-opacity duration-1000`}></div>
 
                                                 <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2">
-                                                    {!arScanning && (
+                                                    {arDetected && (
                                                         <div className="bg-green-500/30 backdrop-blur-md text-white text-[10px] px-4 py-2 rounded-full font-bold animate-bounce border border-green-500/30 flex items-center gap-2">
                                                             <div className="w-2 h-2 rounded-full bg-green-400"></div>
                                                             SURFACE DETECTED
@@ -1725,7 +1732,7 @@
                                                 {/* Instruction Bubble */}
                                                 <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-30">
                                                     <div className="bg-black/60 text-white px-6 py-2 rounded-full text-[10px] md:text-xs font-bold backdrop-blur-md border border-white/20 whitespace-nowrap">
-                                                        {arScanning ? 'Scanning Environment...' : 'Touch and drag to position • Use +/- to scale'}
+                                                        {arScanning ? 'Scanning Environment...' : (isStreamLive ? 'Touch and drag to position • Use +/- to scale' : 'Waiting for camera...')}
                                                     </div>
                                                 </div>
 
@@ -1749,14 +1756,14 @@
                                         )}
                                         <motion.div
                                             id="ar-product-container"
-                                            drag={!arScanning}
+                                            drag={isStreamLive && !arScanning}
                                             dragConstraints={arContainerRef}
                                             animate={{ scale: arScale }}
                                             style={{
-                                                cursor: arScanning ? 'default' : 'move',
+                                                cursor: (isStreamLive && !arScanning) ? 'move' : 'default',
                                                 touchAction: 'none'
                                             }}
-                                            className={`relative flex items-center justify-center ${arScanning ? 'pointer-events-none' : 'pointer-events-auto'}`}
+                                            className={`relative flex items-center justify-center ${(isStreamLive && !arScanning) ? 'pointer-events-auto' : 'pointer-events-none'}`}
                                         >
                                             <img src={arProduct.image} className={`w-48 md:w-64 drop-shadow-2xl ${arScanning ? 'animate-spin-slow' : ''}`} />
                                             {/* Grounded Shadow */}
