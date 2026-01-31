@@ -138,11 +138,11 @@
         }
 
         @keyframes scan {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(384px); } /* h-96 = 384px */
+            0% { top: 0; }
+            100% { top: 100%; }
         }
         .animate-scan-line {
-            animation: scan 3s linear infinite;
+            animation: scan 2s linear infinite;
         }
 
         @keyframes shimmer {
@@ -1687,11 +1687,6 @@
                                     <button onClick={() => setArActive(false)} className="absolute top-4 right-4 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/70"><Icon name="x" /></button>
                                     <div
                                         ref={arContainerRef}
-                                        onMouseMove={handleDragMove}
-                                        onMouseUp={handleDragEnd}
-                                        onMouseLeave={handleDragEnd}
-                                        onTouchMove={handleDragMove}
-                                        onTouchEnd={handleDragEnd}
                                         className={`aspect-video relative flex items-center justify-center overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}
                                     >
                                         {isCameraActive ? (
@@ -1705,7 +1700,7 @@
                                                             AR SYSTEM v2.0 <br/>
                                                             STATUS: SCANNING...
                                                         </div>
-                                                        <div className="w-full h-[2px] bg-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.5)] animate-scan-line relative"></div>
+                                                        <div className="absolute top-0 left-0 w-full h-[2px] bg-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.8)] animate-scan-line"></div>
                                                         <div className="absolute inset-0 border-[20px] border-cyan-500/10 pointer-events-none"></div>
                                                         {/* Tech corners */}
                                                         <div className="absolute top-2 left-2 w-8 h-8 border-t-2 border-l-2 border-cyan-500"></div>
@@ -1718,12 +1713,21 @@
                                                 {/* Scanning Grid Overlay */}
                                                 <div className={`absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.1)_1px,transparent_1px)] bg-[size:30px_30px] ${arScanning ? 'opacity-30 animate-pulse' : 'opacity-10'} pointer-events-none transition-opacity duration-1000`}></div>
 
-                                                {!arScanning && (
-                                                    <div className="absolute top-4 right-4 bg-green-500/30 backdrop-blur-md text-white text-[10px] px-3 py-1.5 rounded-full font-bold animate-bounce z-30 border border-green-500/30 flex items-center gap-2">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
-                                                        SURFACE DETECTED
+                                                <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2">
+                                                    {!arScanning && (
+                                                        <div className="bg-green-500/30 backdrop-blur-md text-white text-[10px] px-4 py-2 rounded-full font-bold animate-bounce border border-green-500/30 flex items-center gap-2">
+                                                            <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                                                            SURFACE DETECTED
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Instruction Bubble */}
+                                                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-30">
+                                                    <div className="bg-black/60 text-white px-6 py-2 rounded-full text-[10px] md:text-xs font-bold backdrop-blur-md border border-white/20 whitespace-nowrap">
+                                                        {arScanning ? 'Scanning Environment...' : 'Touch and drag to position • Use +/- to scale'}
                                                     </div>
-                                                )}
+                                                </div>
 
                                                 {/* Controls Overlay */}
                                                 <div className="absolute bottom-4 left-4 flex flex-col gap-2">
@@ -1743,14 +1747,14 @@
                                         ) : (
                                             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600607686527-6fb886090705?q=80&w=2787&auto=format&fit=crop')] bg-cover bg-center opacity-50"></div>
                                         )}
-                                        <div
+                                        <motion.div
                                             id="ar-product-container"
-                                            onMouseDown={handleDragStart}
-                                            onTouchStart={handleDragStart}
+                                            drag={!arScanning}
+                                            dragConstraints={arContainerRef}
+                                            animate={{ scale: arScale }}
                                             style={{
-                                                transform: `translate(${arPosition.x}px, ${arPosition.y}px) scale(${arScale})`,
-                                                transition: isDragging ? 'none' : 'transform 0.2s ease-out',
-                                                cursor: arScanning ? 'default' : 'move'
+                                                cursor: arScanning ? 'default' : 'move',
+                                                touchAction: 'none'
                                             }}
                                             className={`relative flex items-center justify-center ${arScanning ? 'pointer-events-none' : 'pointer-events-auto'}`}
                                         >
@@ -1760,11 +1764,10 @@
 
                                             {arScanning && isCameraActive && (
                                                 <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-2xl">
-                                                    <div className="scan-line"></div>
-                                                    <div className="absolute inset-0 bg-green-500/10 animate-pulse"></div>
+                                                    <div className="absolute inset-0 bg-cyan-500/10 animate-pulse"></div>
                                                 </div>
                                             )}
-                                        </div>
+                                        </motion.div>
                                     </div>
                                     <div className="p-6 text-center">
                                         <h3 className={`text-xl font-black mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>AR Preview: {arProduct.title}</h3>
